@@ -4,10 +4,11 @@
 	</head>
 	<body>
 		{% if current_user.is_authenticated() %}
-  			Hi {{ current_user.username }}!
+  			NAO EFETUOU LOGOUT {{ current_user.username }}!
+		{% else %}
+			EFETUOU LOGOUT
 		{% endif %}
-
-		<h1>Vem Bindo
+		<h1>
 		</h1>
 	</body>
 </html>

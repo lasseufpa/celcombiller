@@ -8,17 +8,36 @@ from apiConfig_ixfh import db, app
 #   2. They must have an __init__ method which accepts keyword arguments for
 #      all columns (the constructor in flask.ext.sqlalchemy.SQLAlchemy.Model
 #      supplies such a method, so you don't need to declare a new one).
-class Admin(db.Model):
+# class Admin(db.Model):
+# 
+    # __tablename__ = 'admin'
+# 
+    # id_ = db.Column(db.Integer , primary_key=True)
+    # username = db.Column(db.String(20), unique=True , index=True)
+    # password = db.Column(db.String(10))
 
-    __tablename__ = 'admin'
+class User(db.Model):
+    """
+    System users each of which has a unique caller id (CLID)
+    """
+    __tablename__ = 'users'
 
-    id_ = db.Column(db.Integer , primary_key=True)
-    username = db.Column(db.String(20), unique=True , index=True)
-    password = db.Column(db.String(10))
+    id_         = db.Column(db.Integer, primary_key=True)
+    username    = db.Column(db.Unicode, unique=True)
+    password    = db.Column(db.Integer)
+    clid        = db.Column(db.String(9), nullable=False, unique=True)
+    balance     = db.Column(db.Float, default=0)
+    admin       = db.Column(db.Boolean)
 
-    def __init__(self , username ,password):
-        self.username = username
-        self.password = password
+    def __init__(self , username ,password, clid, balance, admin):
+        self.username   = username
+        self.password   = password
+        self.clid       = clid
+        self.balance    = balance
+        self.admin      = admin
+
+    def is_admin(self):
+        return self.admin
 
     def is_authenticated(self):
         return True
@@ -34,19 +53,6 @@ class Admin(db.Model):
 
     def __repr__(self):
         return '<User %r>' % (self.username)
-
-
-class User(db.Model):
-    """
-    System users each of which has a unique caller id (CLID)
-    """
-    __tablename__ = 'users'
-
-
-    id_ = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.Unicode, unique=True)
-    clid = db.Column(db.String(9), nullable=False, unique=True)
-    balance = db.Column(db.Float, default=0)
 
 class CDR(db.Model):
     """

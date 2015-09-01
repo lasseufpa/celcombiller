@@ -6,7 +6,7 @@ from flask.ext.login import LoginManager
 # Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/alph.db'
 
 db = flask.ext.sqlalchemy.SQLAlchemy(app)
 

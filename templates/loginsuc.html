@@ -4,10 +4,11 @@
 	</head>
 	<body>
 		{% if current_user.is_authenticated() %}
-  			Hi {{ current_user.username }}!
+  			Logado como {{ current_user.username }}!
+		{% else %}
+			NAO EFETUOU LOGIN
 		{% endif %}
-
-		<h1>Vem Bindo
+		<h1>
 		</h1>
 	</body>
 </html>
