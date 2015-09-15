@@ -1,4 +1,5 @@
-from flask import Flask,session, request, flash, url_for, redirect, render_template, abort
+import flask
+from flask import Flask, session, request, flash, url_for, redirect, render_template, abort
 from apiConfig import db, app, login_manager
 from models import CDR, User
 from flask_restless import ProcessingException

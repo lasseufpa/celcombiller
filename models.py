@@ -1,4 +1,4 @@
-from apiConfig_ixfh import db, app
+from apiConfig import db, app
 
 
 # Create your Flask-SQLALchemy models as usual but with the following two

@@ -8,7 +8,7 @@
 # Setup developemnt enrironment
 
 ```bash
-$ virutalenv venv
+$ virtualenv venv
 $ source venv/bin/activate
 $ pip install --allow-external pyst --allow-unverified pyst -r requirements.txt
 ```
