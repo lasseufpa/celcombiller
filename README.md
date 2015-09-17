@@ -18,12 +18,20 @@ $ pip install --allow-external pyst --allow-unverified pyst -r requirements.txt
 Each SIP user must be inserted in the database of users with a balance. The python code snippet bellow is an example of a insertion of two users.
 
 ```python
-from models import session, User
-session.add_all([User(clid='100000000', name='PSB', balance=100),
-                User(clid='200000000', name='LaPS', balance=100)
-                ])
-session.commit()
+from flask import Flask
+from flask.ext.sqlalchemy import SQLAlchemy
+from apiConfig import db
+from models import User
+
+admin = User('admin', 'adm123', '999999999', '9999', True)
+guest = User('guest', '123123', '999999999', '0000', False)
+
+db.session.add(admin)
+db.session.add(guest)
+db.session.commit()
 ```
+
+please check test_initial_user.py
 
 ## Asterisk setup
 
