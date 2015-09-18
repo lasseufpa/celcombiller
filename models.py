@@ -32,9 +32,6 @@ class User(db.Model):
     def is_admin(self):
         return self.admin
 
-    def name_is(self):
-        return unicode(self.username)
-
     def is_authenticated(self):
         return True
 

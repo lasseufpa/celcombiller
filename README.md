@@ -33,6 +33,31 @@ db.session.commit()
 
 please check test_initial_user.py
 
+## Using curl to test api
+
+login
+
+```bash
+curl -c cookiefile -d "username=admin&password=adm123" -X POST -s http://localhost:5000/login
+```
+
+add user
+
+```bash
+curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"username":"yourusername","password":"yourpassword","clid":"999999999","balance":"0","admin":'false'}' -s http://localhost:5000/api/users
+```
+
+update user
+
+```bash
+curl -X PATCH -H "Content-Type: application/json" -d '{"username":"yournewusername","password":"yournewpassowrd"}' -s http://localhost:5000/api/users/youroldusername -b cookiefile
+```
+remove user
+
+```bash
+curl -X DELETE -s http://localhost:5000/api/users/yourusername -b cookiefile
+```
+
 ## Asterisk setup
 
 With a working Asterisk server you must have at least two SIP accounts. An example of the corresponding section of `sip.conf` follows.
