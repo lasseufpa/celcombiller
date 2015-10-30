@@ -1,9 +1,15 @@
 import flask
-from flask import Flask, session, request, flash, url_for, redirect, render_template, abort
+from flask import Flask, session, request, flash, url_for, redirect, \
+    render_template, abort
 from apiConfig import db, app, login_manager
-from models import CDR, User
+from models import CDR, User, CreditsRegister
+from time import strftime, sleep
+from dateutil.rrule import *
+from dateutil.parser import *
+from datetime import *; from dateutil.relativedelta import *
 from flask_restless import ProcessingException
-from flask.ext.login import login_user , logout_user , current_user , login_required
+from flask.ext.login import login_user , logout_user , current_user ,\
+    login_required
 
 @app.route('/')
 def index():
@@ -19,12 +25,50 @@ def login():
     else:
         username = request.form['username']
         password = request.form['password']
-        registered_user = User.query.filter_by(username=username,password=password).first()
+        registered_user = \
+            User.query.filter_by(username=username,password=password).first()
         if registered_user is None:
             flash('Username or Password is invalid' , 'error')
             return render_template('ERROR.html')
         login_user(registered_user)
         return render_template('loginsuc.html')
+
+@app.route('/updateCredits/<tablename_>')
+def updateCredits(tablename_):
+    Table_CreditsRegister = \
+        CreditsRegister.query.filter_by(name=tablename_).first()
+    now = datetime.now()
+    update = Table_CreditsRegister.date_to_update
+    check =  now - update
+    if check.total_seconds() < 0:
+        print "ok"
+
+    # checkupdate = now - Table_CreditsRegister.date_to_update
+    # print checkupdate
+    # if checkupdate < 0:
+        # return '0'
+    # for aux in Table_CreditsRegister.tunel :
+    #     db.session.query(User).filter_by(id_=aux.id_).update({"balance":"99"})
+    #     db.session.commit()
+    return tablename_
+
+@app.route('/addAllUsersUpdateCredits/<newtablename_>')
+def addAllUsersUpdateCredits(newtablename_):
+    now = datetime.now().strftime("%d %m %H:%M:%S %Y")
+    updates_times = list(rrule(MONTHLY, count=2, dtstart=parse(now)))
+    repeat_time = updates_times[1]
+    if CreditsRegister.query.filter_by(name=newtablename_).first() is None:
+        Table_CreditsRegister = CreditsRegister(newtablename_,repeat_time)
+        allusers = User.query.all()
+        for aux in allusers:
+            Table_CreditsRegister.tunel.append(aux)
+        db.session.add(Table_CreditsRegister)
+        db.session.commit()
+        return "Created" + newtablename_
+    else :
+        db.session.query(CreditsRegister).filter_by(name=newtablename_)\
+            .update({"date_to_update":repeat_time})
+        return "Updated" + newtablename_
 
 @app.route('/logout')
 def logout():
@@ -48,6 +92,7 @@ def auth(*args, **kargs):
     Require API request to be authenticated
     """
     if not current_user.is_authenticated():
+        print 'ok'
         raise ProcessingException(description='Not authenticated', code=401)
 
 def preprocessor_check_adm(search_params, *args, **kargs):
@@ -76,7 +121,8 @@ def preprocessor_another_route(*args, **kargs):
         raise ProcessingException(description='Not authenticated', code=401)
 
 def preprocessors_patch(instance_id=None, data=None, **kargs):
-    user_cant_change = [ "admin", "balance", "clid", "id_", "originated_calls", "received_calls" ]
+    user_cant_change = [ "admin", "balance", "clid", "id_", \
+        "originated_calls", "received_calls" ]
     admin_cant_change = [ "id_", "originated_calls", "received_calls" ]
     if current_user.is_admin():
         for x in data.keys():
@@ -110,13 +156,12 @@ manager.create_api(User,
                             'GET_SINGLE': [auth, preprocessor_another_route],
                             'PATCH_SINGLE': [auth, preprocessors_patch],
                             'DELETE_SINGLE': [auth, preprocessors_delete],
-                            # 'PATCH_MANY': [auth, patch_many_preprocessor],
-                            # 'DELETE_MANY': [auth],
                         },
                             methods=['POST', 'GET', 'PATCH', 'DELETE'],
                             primary_key='username'
                             )
 manager.create_api(CDR, methods=['GET', 'DELETE'])
+manager.create_api(CreditsRegister, methods=['GET', 'DELETE'])
 
 # start the flask loop
 app.debug=True
