@@ -8,7 +8,7 @@
 # Setup developemnt enrironment
 
 ```bash
-$ virtualenv venv
+$ virtualenv -p /usr/bin/python2.7 venv
 $ source venv/bin/activate
 $ pip install --allow-external pyst --allow-unverified pyst -r requirements.txt
 ```
@@ -31,9 +31,11 @@ db.session.add(guest)
 db.session.commit()
 ```
 
-please check test_initial_user.py
+please check adduser.py
 
 ## Using curl to test api
+
+#USER
 
 login
 
