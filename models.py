@@ -86,7 +86,6 @@ class Groups(db.Model):
 
     def __init__(self, name):
         self.name = name
-        # self.date_to_update = date_to_update
 
     def __repr__(self):
         return 'GROUPS %r' % (self.name)
