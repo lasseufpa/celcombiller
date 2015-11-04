@@ -35,7 +35,7 @@ please check adduser.py
 
 ## Using curl to test api
 
-#USER
+###USER
 
 login
 
@@ -60,7 +60,7 @@ remove user
 curl -X DELETE -s http://localhost:5000/api/users/yourusername -b cookiefile
 ```
 
-#GROUPS
+###GROUPS
 
 add group
 
