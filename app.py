@@ -45,7 +45,7 @@ def check_time():
         json_need_update = []
         groups = Groups.query.all()
         for group in groups:
-            boolean_time = (group.date_to_update - datetime.now())\
+            boolean_time = (group.dates_to_update[0].date - datetime.now())\
                 .total_seconds()
             boolean_time = 1 if boolean_time < 0 else 0
             if boolean_time == 1:
@@ -111,6 +111,9 @@ def transform_to_utc(*args, **kargs):
 
 def update_balance_by_group_name(instance_id=None, *args, **kargs):
     group = Groups.query.filter_by(name=instance_id).first()
+    deleteDate = Dates.query.filter_by(group_id=group.id_).first()
+    db.session.delete(deleteDate)
+    db.session.commit()
     for var in group.tunel:
         db.session.query(User).filter_by(id_=var.id_)\
             .update({'balance':'1250'})
@@ -189,8 +192,8 @@ manager.create_api(
         'GET_MANY': [auth, preprocessor_check_adm],
         'GET_SINGLE': [auth, preprocessors_check_adm_or_normal_user],
         'PATCH_SINGLE': [
-            # auth,
-            # preprocessors_check_adm_or_normal_user,
+            auth,
+            preprocessors_check_adm_or_normal_user,
             preprocessors_patch
         ],
         'PATCH_MANY': [auth, preprocessor_check_adm],
@@ -214,16 +217,15 @@ manager.create_api(
     Groups,
     preprocessors={
         'POST': [
-            # auth,
-            # preprocessor_check_adm,
+            auth,
+            preprocessor_check_adm,
             already_has_group, transform_to_utc
         ],
         'GET_MANY': [auth, preprocessor_check_adm],
         'GET_SINGLE': [auth, preprocessor_check_adm],
         'PATCH_SINGLE': [
-            # auth,
-            # preprocessor_check_adm,
-            # transform_to_utc,
+            auth,
+            preprocessor_check_adm,
             update_balance_by_group_name
         ],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
