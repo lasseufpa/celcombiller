@@ -11,7 +11,7 @@ from apiConfig import db, app
 
 tunel_table = db.Table('association', db.Model.metadata,
     db.Column('User_id', db.Integer, db.ForeignKey('users.id_')),
-    db.Column('CreditsRegister_id', db.Integer, db.ForeignKey('cr.id_'))
+    db.Column('Groups_id', db.Integer, db.ForeignKey('groups.id_'))
 )
 
 class User(db.Model):
@@ -26,7 +26,7 @@ class User(db.Model):
     clid        = db.Column(db.String(9), nullable=False, unique=True)
     balance     = db.Column(db.Float, default=0)
     admin       = db.Column(db.Boolean)
-    tunel       = db.relationship('CreditsRegister', secondary=tunel_table)
+    tunel       = db.relationship('Groups', secondary=tunel_table)
 
     def __init__(self , username ,password, clid, balance, admin):
         self.username   = username
@@ -73,11 +73,11 @@ class CDR(db.Model):
         return '<from=%s date=%s duration=%s>' % (self.from_user, self.answer,
                                                   self.billsec)
 
-class CreditsRegister(db.Model):
+class Groups(db.Model):
     """
     # Register Credits if 
     """
-    __tablename__ = 'cr'
+    __tablename__ = 'groups'
 
     id_ = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode)

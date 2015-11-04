@@ -60,6 +60,21 @@ remove user
 curl -X DELETE -s http://localhost:5000/api/users/yourusername -b cookiefile
 ```
 
+#GROUPS
+
+add group
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"name":"Group_A","day":1, "month":12, "year":2015}' -s http://localhost:5000/api/groups
+```
+
+update group
+
+```bash
+curl -X PATCH -H "Content-Type: application/json" -d '{}' -s http://localost:5000/api/groups/Group_A
+```
+
+
 ## Asterisk setup
 
 With a working Asterisk server you must have at least two SIP accounts. An example of the corresponding section of `sip.conf` follows.

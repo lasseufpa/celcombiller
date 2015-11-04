@@ -2,7 +2,7 @@ import flask
 from flask import Flask, session, request, flash, url_for, redirect, \
     render_template, abort
 from apiConfig import db, app, login_manager
-from models import CDR, User, CreditsRegister
+from models import CDR, User, Groups
 from time import strftime
 from datetime import *
 from dateutil.relativedelta import *
@@ -41,7 +41,7 @@ def check_time():
         return False
     else:
         json_need_update = []
-        groups = CreditsRegister.query.all()
+        groups = Groups.query.all()
         for group in groups:
             boolean_time = (group.date_to_update - datetime.now())\
                 .total_seconds()
@@ -57,9 +57,9 @@ def check_time():
 def already_has_group(*args, **kargs):
     data = request.data
     request_body = json.loads(data)
-    Table_CreditsRegister = CreditsRegister.query.\
+    Table_Groups = Groups.query.\
         filter_by(name=request_body['name']).first()
-    if Table_CreditsRegister is not None:
+    if Table_Groups is not None:
         raise ProcessingException(description='Already has this Group', code=400)
     else:
         pass
@@ -67,12 +67,12 @@ def already_has_group(*args, **kargs):
 def add_users_to_group(*args, **kargs):
     data = request.data
     request_body = json.loads(data)
-    Table_CreditsRegister = CreditsRegister.query.\
+    Table_Groups = Groups.query.\
         filter_by(name=request_body['name']).first()
     all_users = User.query.all()
     for aux in all_users:
-        Table_CreditsRegister.tunel.append(aux)
-    db.session.add(Table_CreditsRegister)
+        Table_Groups.tunel.append(aux)
+    db.session.add(Table_Groups)
     db.session.commit()
     pass
 
@@ -94,7 +94,14 @@ def transform_to_utc(*args, **kargs):
         del kargs['data']['year']
         kargs['data']['date_to_update'] = \
             str(month) + " " + str(day) + " " + str(year) + " 0:0:0 "
-        pass
+
+def update_balance_by_group_name(instance_id=None, *args, **kargs):
+    group = Groups.query.filter_by(name=instance_id).first()
+    for var in group.tunel:
+        db.session.query(User).filter_by(id_=var.id_)\
+            .update({'balance':'1250'})
+    pass
+
 
 @app.route('/logout')
 def logout():
@@ -168,8 +175,8 @@ manager.create_api(
         'GET_MANY': [auth, preprocessor_check_adm],
         'GET_SINGLE': [auth, preprocessors_check_adm_or_normal_user],
         'PATCH_SINGLE': [
-            auth,
-            preprocessors_check_adm_or_normal_user,
+            # auth,
+            # preprocessors_check_adm_or_normal_user,
             preprocessors_patch
         ],
         'PATCH_MANY': [auth, preprocessor_check_adm],
@@ -190,16 +197,21 @@ manager.create_api(
     methods=['GET','PATCH', 'DELETE'])
 
 manager.create_api(
-    CreditsRegister,
+    Groups,
     preprocessors={
         'POST': [
-            auth,
-            preprocessor_check_adm,
+            # auth,
+            # preprocessor_check_adm,
             already_has_group, transform_to_utc
         ],
         'GET_MANY': [auth, preprocessor_check_adm],
         'GET_SINGLE': [auth, preprocessor_check_adm],
-        'PATCH_SINGLE': [auth, preprocessor_check_adm, transform_to_utc],
+        'PATCH_SINGLE': [
+            # auth,
+            # preprocessor_check_adm,
+            # transform_to_utc,
+            update_balance_by_group_name
+        ],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
