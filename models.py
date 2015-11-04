@@ -81,15 +81,29 @@ class Groups(db.Model):
 
     id_ = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode)
-    date_to_update = db.Column(db.DateTime)
+    dates_to_update = db.relationship('Dates')
     tunel = db.relationship('User', secondary=tunel_table)
 
-    def __init__(self, name, date_to_update):
+    def __init__(self, name):
         self.name = name
-        self.date_to_update = date_to_update
+        # self.date_to_update = date_to_update
 
     def __repr__(self):
-        return 'CreditsDate %r' % (self.name)
+        return 'GROUPS %r' % (self.name)
+
+class Dates(db.Model):
+
+    __tablename__ = 'dates'
+
+    id_ = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('groups.id_'))
+    date = db.Column(db.DateTime)
+
+    def __init__(self, date):
+        self.date = date
+
+    def __repr__(self):
+        return 'DATES %r' % (self.id_)
 
 # Create the database tables.
 db.create_all()

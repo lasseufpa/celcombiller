@@ -2,9 +2,11 @@ import flask
 from flask import Flask, session, request, flash, url_for, redirect, \
     render_template, abort
 from apiConfig import db, app, login_manager
-from models import CDR, User, Groups
+from models import CDR, User, Groups, Dates
 from time import strftime
 from datetime import *
+from dateutil.rrule import *
+from dateutil.parser import *
 from dateutil.relativedelta import *
 from flask_restless import ProcessingException
 from flask.ext.login import login_user , logout_user , current_user ,\
@@ -69,6 +71,11 @@ def add_users_to_group(*args, **kargs):
     request_body = json.loads(data)
     Table_Groups = Groups.query.\
         filter_by(name=request_body['name']).first()
+    dates_in = Dates.query.order_by(Dates.id_.desc())\
+        .limit(request_body['count']).all()
+    print dates_in
+    for var in dates_in:
+        Table_Groups.dates_to_update.append(var)
     all_users = User.query.all()
     for aux in all_users:
         Table_Groups.tunel.append(aux)
@@ -85,6 +92,7 @@ def transform_to_utc(*args, **kargs):
     day = int(request_body['day'])
     year = int(request_body['year'])
     month = int(request_body['month'])
+    how_many = int(request_body['count'])
     if year < min_year or ((month < min_month) and (year <= min_year)) or \
         (day < min_day and (month <= min_month and year <= min_year)):
         raise ProcessingException(description='Date not accept', code=400)
@@ -92,8 +100,14 @@ def transform_to_utc(*args, **kargs):
         del kargs['data']['day']
         del kargs['data']['month']
         del kargs['data']['year']
-        kargs['data']['date_to_update'] = \
-            str(month) + " " + str(day) + " " + str(year) + " 0:0:0 "
+        del kargs['data']['count']
+        start_date = str(month) + " " + str(day) + " " + str(year) + " 0:0:0 "
+        all_dates = \
+            list(rrule(MONTHLY, count=how_many, dtstart=parse(start_date)))
+        for var in all_dates:
+            db.session.add(Dates(var))
+            db.session.commit()
+        pass
 
 def update_balance_by_group_name(instance_id=None, *args, **kargs):
     group = Groups.query.filter_by(name=instance_id).first()
