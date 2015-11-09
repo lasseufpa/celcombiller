@@ -13,7 +13,6 @@ from flask.ext.login import login_user , logout_user , current_user ,\
     login_required
 import json
 
-
 @app.route('/')
 def index():
     """
@@ -56,36 +55,55 @@ def check_time():
             return json_need_update
 
 
-def already_has_group(*args, **kargs):
+def already_has_group(data=None, **kargs):
     data = request.data
     request_body = json.loads(data)
-    Table_Groups = Groups.query.\
+    group = Groups.query.\
         filter_by(name=request_body['name']).first()
-    if Table_Groups is not None:
+    if group is not None:
+        put_user_id_in_buffer(args, kargs)
+        transform_to_utc(args, kargs)
+        add_users_to_group(args, kargs)
         raise ProcessingException(description='Already has this Group', code=400)
     else:
         pass
 
-def add_users_to_group(*args, **kargs):
+def put_user_id_in_buffer(*args, **kargs):
     data = request.data
     request_body = json.loads(data)
-    Table_Groups = Groups.query.\
+    global buffer_usersId
+    buffer_usersId = request_body['users']
+    del kargs['data']['users']
+
+def add_users_to_group(*args, **kargs):
+    global buffer_usersId
+    data = request.data
+    request_body = json.loads(data)
+    group = Groups.query.\
         filter_by(name=request_body['name']).first()
-    dates_in = Dates.query.order_by(Dates.id_.desc())\
-        .limit(request_body['count']).all()
-    print dates_in
-    for var in dates_in:
-        Table_Groups.dates_to_update.append(var)
-    all_users = User.query.all()
-    for aux in all_users:
-        Table_Groups.tunel.append(aux)
-    db.session.add(Table_Groups)
+    for userId in buffer_usersId:
+        user = User.query.filter_by(id_=userId).first()
+        group.tunel.append(user)
+    db.session.add(group)
     db.session.commit()
     pass
 
-def transform_to_utc(*args, **kargs):
+def add_dates_to_group(*args, **kargs):
+    global data_count
     data = request.data
     request_body = json.loads(data)
+    group = Groups.query.\
+        filter_by(name=request_body['name']).first()
+    listOfdates = Dates.query.order_by(Dates.id_.desc()).limit(data_count)
+    for date in listOfdates:
+        group.dates_to_update.append(date)
+    pass
+
+def transform_to_utc(*args, **kargs):
+    global data_count
+    data = request.data
+    request_body = json.loads(data)
+    data_count = kargs['data']['count']
     min_day = int(datetime.now().strftime("%d"))
     min_month = int(datetime.now().strftime("%m"))
     min_year = int(datetime.now().strftime("%Y"))
@@ -109,7 +127,7 @@ def transform_to_utc(*args, **kargs):
             db.session.commit()
         pass
 
-def update_balance_by_group_name(instance_id=None, *args, **kargs):
+def update_balance_by_group_name(instance_id):
     group = Groups.query.filter_by(name=instance_id).first()
     deleteDate = Dates.query.filter_by(group_id=group.id_).first()
     db.session.delete(deleteDate)
@@ -119,6 +137,19 @@ def update_balance_by_group_name(instance_id=None, *args, **kargs):
             .update({'balance':'1250'})
     pass
 
+def ixfh(instance_id=None, data=None, **kargs):
+    print data
+    instance_id_ = instance_id
+
+    if data == None:
+        print 'deu bom'
+    elif data == {}:
+        # print 'deu bom2'
+        update_balance_by_group_name(instance_id_)
+    else:
+        print 'deu ruim'
+    pass
+    # print kargs
 
 @app.route('/logout')
 def logout():
@@ -189,7 +220,10 @@ manager.create_api(
     User,
     preprocessors={
         'POST': [auth, preprocessor_check_adm],
-        'GET_MANY': [auth, preprocessor_check_adm],
+        'GET_MANY': [
+        # auth,
+         # preprocessor_check_adm
+         ],
         'GET_SINGLE': [auth, preprocessors_check_adm_or_normal_user],
         'PATCH_SINGLE': [
             auth,
@@ -217,23 +251,33 @@ manager.create_api(
     Groups,
     preprocessors={
         'POST': [
-            auth,
-            preprocessor_check_adm,
-            already_has_group, transform_to_utc
+            # auth,
+            # preprocessor_check_adm,
+            already_has_group,
+            put_user_id_in_buffer,
+            transform_to_utc
         ],
-        'GET_MANY': [auth, preprocessor_check_adm],
+        'GET_MANY': [
+        # auth,
+         # preprocessor_check_adm
+         ],
         'GET_SINGLE': [auth, preprocessor_check_adm],
         'PATCH_SINGLE': [
-            auth,
-            preprocessor_check_adm,
-            update_balance_by_group_name
+            # auth,
+            # preprocessor_check_adm,
+            ixfh
+            # update_balance_by_group_name
         ],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
-        'POST': [add_users_to_group],
+        'POST': [
+            add_dates_to_group,
+            add_users_to_group
+        ],
     },
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
+    results_per_page=100,
     primary_key='name')
 
 # start the flask loop
