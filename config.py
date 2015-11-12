@@ -1,6 +1,7 @@
 import flask
 import flask.ext.sqlalchemy
 import flask.ext.restless
+
 from flask.ext.login import LoginManager
 
 # Create the Flask application and the Flask-SQLAlchemy object.

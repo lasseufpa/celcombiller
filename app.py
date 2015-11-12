@@ -61,9 +61,6 @@ def already_has_group(data=None, **kargs):
     group = Groups.query.\
         filter_by(name=request_body['name']).first()
     if group is not None:
-        put_user_id_in_buffer(args, kargs)
-        transform_to_utc(args, kargs)
-        add_users_to_group(args, kargs)
         raise ProcessingException(description='Already has this Group', code=400)
     else:
         pass
@@ -79,8 +76,8 @@ def add_users_to_group(*args, **kargs):
     global buffer_usersId
     data = request.data
     request_body = json.loads(data)
-    group = Groups.query.\
-        filter_by(name=request_body['name']).first()
+    group = Groups.query\
+        .filter_by(name=request_body['name']).first()
     for userId in buffer_usersId:
         user = User.query.filter_by(id_=userId).first()
         group.tunel.append(user)
@@ -127,29 +124,6 @@ def transform_to_utc(*args, **kargs):
             db.session.commit()
         pass
 
-def update_balance_by_group_name(instance_id):
-    group = Groups.query.filter_by(name=instance_id).first()
-    deleteDate = Dates.query.filter_by(group_id=group.id_).first()
-    db.session.delete(deleteDate)
-    db.session.commit()
-    for var in group.tunel:
-        db.session.query(User).filter_by(id_=var.id_)\
-            .update({'balance':'1250'})
-    pass
-
-def ixfh(instance_id=None, data=None, **kargs):
-    print data
-    instance_id_ = instance_id
-
-    if data == None:
-        print 'deu bom'
-    elif data == {}:
-        # print 'deu bom2'
-        update_balance_by_group_name(instance_id_)
-    else:
-        print 'deu ruim'
-    pass
-    # print kargs
 
 @app.route('/logout')
 def logout():
@@ -220,10 +194,7 @@ manager.create_api(
     User,
     preprocessors={
         'POST': [auth, preprocessor_check_adm],
-        'GET_MANY': [
-        # auth,
-         # preprocessor_check_adm
-         ],
+        'GET_MANY': [auth, preprocessor_check_adm],
         'GET_SINGLE': [auth, preprocessors_check_adm_or_normal_user],
         'PATCH_SINGLE': [
             auth,
@@ -251,30 +222,19 @@ manager.create_api(
     Groups,
     preprocessors={
         'POST': [
-            # auth,
-            # preprocessor_check_adm,
+            auth,
+            preprocessor_check_adm,
             already_has_group,
             put_user_id_in_buffer,
             transform_to_utc
         ],
-        'GET_MANY': [
-        # auth,
-         # preprocessor_check_adm
-         ],
+        'GET_MANY': [auth, preprocessor_check_adm],
         'GET_SINGLE': [auth, preprocessor_check_adm],
-        'PATCH_SINGLE': [
-            # auth,
-            # preprocessor_check_adm,
-            ixfh
-            # update_balance_by_group_name
-        ],
+        'PATCH_SINGLE': [auth, preprocessor_check_adm],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
-        'POST': [
-            add_dates_to_group,
-            add_users_to_group
-        ],
+        'POST': [add_dates_to_group, add_users_to_group],
     },
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
