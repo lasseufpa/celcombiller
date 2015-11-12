@@ -61,9 +61,6 @@ def already_has_group(data=None, **kargs):
     group = Groups.query.\
         filter_by(name=request_body['name']).first()
     if group is not None:
-        put_user_id_in_buffer(args, kargs)
-        transform_to_utc(args, kargs)
-        add_users_to_group(args, kargs)
         raise ProcessingException(description='Already has this Group', code=400)
     else:
         pass
@@ -79,8 +76,8 @@ def add_users_to_group(*args, **kargs):
     global buffer_usersId
     data = request.data
     request_body = json.loads(data)
-    group = Groups.query.\
-        filter_by(name=request_body['name']).first()
+    group = Groups.query\
+        .filter_by(name=request_body['name']).first()
     for userId in buffer_usersId:
         user = User.query.filter_by(id_=userId).first()
         group.tunel.append(user)
@@ -127,27 +124,39 @@ def transform_to_utc(*args, **kargs):
             db.session.commit()
         pass
 
-def update_balance_by_group_name(instance_id):
-    group = Groups.query.filter_by(name=instance_id).first()
-    deleteDate = Dates.query.filter_by(group_id=group.id_).first()
-    db.session.delete(deleteDate)
-    db.session.commit()
-    for var in group.tunel:
-        db.session.query(User).filter_by(id_=var.id_)\
-            .update({'balance':'1250'})
-    pass
+# def update_balance_by_group_name(instance_id):
+#     group = Groups.query.filter_by(name=instance_id).first()
+#     deleteDate = Dates.query.filter_by(group_id=group.id_).first()
+#     db.session.delete(deleteDate)
+#     db.session.commit()
+#     for var in group.tunel:
+#         db.session.query(User).filter_by(id_=var.id_)\
+#             .update({'balance':'1250'})
+#     pass
 
-def ixfh(instance_id=None, data=None, **kargs):
-    print data
-    instance_id_ = instance_id
+def ixfh(instance_id=None,  data=None,  *args, **kargs):
+    # group = Groups.query.filter_by(name=instance_id).first()
+    # newUser = User.query.filter_by(id_=data['newUsers']).first()
+    # group.tunel.append(newUser)
+    # db.session.add(group)
+    # db.session.commit()
+    # print data
+    # print instance_id
+    # print args
+    # print kargs
+    # instance_id_ = instance_id
+    # x = group.add_user_to_group_method(0)
+    # print x
+    # print '\n\n\n\n\n'
+    # print data
 
-    if data == None:
-        print 'deu bom'
-    elif data == {}:
-        # print 'deu bom2'
-        update_balance_by_group_name(instance_id_)
-    else:
-        print 'deu ruim'
+    # if data == None:
+    #     print 'deu bom'
+    # elif data == {}:
+    #     # print 'deu bom2'
+    #     update_balance_by_group_name(instance_id_)
+    # else:
+    #     print 'deu ruim'
     pass
     # print kargs
 
@@ -219,7 +228,10 @@ manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
 manager.create_api(
     User,
     preprocessors={
-        'POST': [auth, preprocessor_check_adm],
+        'POST': [
+            # auth,
+            # preprocessor_check_adm
+        ],
         'GET_MANY': [
         # auth,
          # preprocessor_check_adm
@@ -265,7 +277,6 @@ manager.create_api(
         'PATCH_SINGLE': [
             # auth,
             # preprocessor_check_adm,
-            ixfh
             # update_balance_by_group_name
         ],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],

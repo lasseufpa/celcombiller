@@ -1,5 +1,6 @@
 from apiConfig import db, app
-
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm.session import object_session
 
 # Create your Flask-SQLALchemy models as usual but with the following two
 # (reasonable) restrictions:
@@ -89,6 +90,39 @@ class Groups(db.Model):
 
     def __repr__(self):
         return 'GROUPS %r' % (self.name)
+
+    @hybrid_property
+    def newUser(self):
+        return 0
+
+    @newUser.setter
+    def newUser(self, userIds):
+        for userId in userIds:
+            self.tunel.append(User.query.filter_by(id_=userId).first())
+            db.session.add(self)
+        db.session.commit()
+
+    @hybrid_property
+    def removeUser(self):
+        return 0
+
+    @removeUser.setter
+    def removeUser(self, userIds):
+        for userId in userIds:
+            self.tunel.remove(User.query.filter_by(id_=userId).first())
+
+    @hybrid_property
+    def updateGroup(self):
+        return 0
+
+    @updateGroup.setter
+    def updateGroup(self, check):
+        if check == 1:
+            deleteDate = Dates.query.filter_by(group_id=self.id_).first()
+            db.session.delete(deleteDate)
+            for var in self.tunel:
+                db.session.query(User).filter_by(id_=var.id_)\
+                    .update({'balance':'1250'})
 
 class Dates(db.Model):
 
