@@ -27,14 +27,15 @@ class User(db.Model):
     balance     = db.Column(db.Float, default=0)
     admin       = db.Column(db.Boolean)
     tunel       = db.relationship('CreditsRegister', secondary=tunel_table)
+    imsi        = db.Column(db.Integer, unique=True)
 
-    def __init__(self , username ,password, clid, balance, admin):
+    def __init__(self , username ,password, clid, balance, admin, imsi ):
         self.username   = username
         self.password   = password
         self.clid       = clid
         self.balance    = balance
         self.admin      = admin
-
+        self.imsi 		= imsi
     def is_admin(self):
         return self.admin
 
