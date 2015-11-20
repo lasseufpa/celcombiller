@@ -124,7 +124,6 @@ def transform_to_utc(*args, **kargs):
             db.session.commit()
         pass
 
-
 @app.route('/logout')
 def logout():
     logout_user()
