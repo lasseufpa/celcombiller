@@ -2,15 +2,16 @@ import flask
 from flask import Flask, session, request, flash, url_for, redirect, \
     render_template, abort
 from apiConfig import db, app, login_manager
-from models import CDR, User, CreditsRegister
+from models import CDR, User, Groups, Dates
 from time import strftime
 from datetime import *
+from dateutil.rrule import *
+from dateutil.parser import *
 from dateutil.relativedelta import *
 from flask_restless import ProcessingException
 from flask.ext.login import login_user , logout_user , current_user ,\
     login_required
 import json
-
 
 @app.route('/')
 def index():
@@ -41,9 +42,9 @@ def check_time():
         return False
     else:
         json_need_update = []
-        groups = CreditsRegister.query.all()
+        groups = Groups.query.all()
         for group in groups:
-            boolean_time = (group.date_to_update - datetime.now())\
+            boolean_time = (group.dates_to_update[0].date - datetime.now())\
                 .total_seconds()
             boolean_time = 1 if boolean_time < 0 else 0
             if boolean_time == 1:
@@ -54,37 +55,59 @@ def check_time():
             return json_need_update
 
 
-def already_has_group(*args, **kargs):
+def already_has_group(data=None, **kargs):
     data = request.data
     request_body = json.loads(data)
-    Table_CreditsRegister = CreditsRegister.query.\
+    group = Groups.query.\
         filter_by(name=request_body['name']).first()
-    if Table_CreditsRegister is not None:
+    if group is not None:
         raise ProcessingException(description='Already has this Group', code=400)
     else:
         pass
 
-def add_users_to_group(*args, **kargs):
+def put_user_id_in_buffer(*args, **kargs):
     data = request.data
     request_body = json.loads(data)
-    Table_CreditsRegister = CreditsRegister.query.\
-        filter_by(name=request_body['name']).first()
-    all_users = User.query.all()
-    for aux in all_users:
-        Table_CreditsRegister.tunel.append(aux)
-    db.session.add(Table_CreditsRegister)
+    global buffer_usersId
+    buffer_usersId = request_body['users']
+    del kargs['data']['users']
+
+def add_users_to_group(*args, **kargs):
+    global buffer_usersId
+    data = request.data
+    request_body = json.loads(data)
+    group = Groups.query\
+        .filter_by(name=request_body['name']).first()
+    for userId in buffer_usersId:
+        user = User.query.filter_by(id_=userId).first()
+        group.tunel.append(user)
+    db.session.add(group)
     db.session.commit()
     pass
 
-def transform_to_utc(*args, **kargs):
+def add_dates_to_group(*args, **kargs):
+    global data_count
     data = request.data
     request_body = json.loads(data)
+    group = Groups.query.\
+        filter_by(name=request_body['name']).first()
+    listOfdates = Dates.query.order_by(Dates.id_.desc()).limit(data_count)
+    for date in listOfdates:
+        group.dates_to_update.append(date)
+    pass
+
+def transform_to_utc(*args, **kargs):
+    global data_count
+    data = request.data
+    request_body = json.loads(data)
+    data_count = kargs['data']['count']
     min_day = int(datetime.now().strftime("%d"))
     min_month = int(datetime.now().strftime("%m"))
     min_year = int(datetime.now().strftime("%Y"))
     day = int(request_body['day'])
     year = int(request_body['year'])
     month = int(request_body['month'])
+    how_many = int(request_body['count'])
     if year < min_year or ((month < min_month) and (year <= min_year)) or \
         (day < min_day and (month <= min_month and year <= min_year)):
         raise ProcessingException(description='Date not accept', code=400)
@@ -92,8 +115,13 @@ def transform_to_utc(*args, **kargs):
         del kargs['data']['day']
         del kargs['data']['month']
         del kargs['data']['year']
-        kargs['data']['date_to_update'] = \
-            str(month) + " " + str(day) + " " + str(year) + " 0:0:0 "
+        del kargs['data']['count']
+        start_date = str(month) + " " + str(day) + " " + str(year) + " 0:0:0 "
+        all_dates = \
+            list(rrule(MONTHLY, count=how_many, dtstart=parse(start_date)))
+        for var in all_dates:
+            db.session.add(Dates(var))
+            db.session.commit()
         pass
 
 @app.route('/logout')
@@ -190,22 +218,25 @@ manager.create_api(
     methods=['GET','PATCH', 'DELETE'])
 
 manager.create_api(
-    CreditsRegister,
+    Groups,
     preprocessors={
         'POST': [
             auth,
             preprocessor_check_adm,
-            already_has_group, transform_to_utc
+            already_has_group,
+            put_user_id_in_buffer,
+            transform_to_utc
         ],
         'GET_MANY': [auth, preprocessor_check_adm],
         'GET_SINGLE': [auth, preprocessor_check_adm],
-        'PATCH_SINGLE': [auth, preprocessor_check_adm, transform_to_utc],
+        'PATCH_SINGLE': [auth, preprocessor_check_adm],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
-        'POST': [add_users_to_group],
+        'POST': [add_dates_to_group, add_users_to_group],
     },
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
+    results_per_page=100,
     primary_key='name')
 
 # start the flask loop

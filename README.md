@@ -35,7 +35,7 @@ please check adduser.py
 
 ## Using curl to test api
 
-#USER
+###USER
 
 login
 
@@ -59,6 +59,21 @@ remove user
 ```bash
 curl -X DELETE -s http://localhost:5000/api/users/yourusername -b cookiefile
 ```
+
+###GROUPS
+
+add group
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"name":"group_name","day":1, "month":1, "year":3000, "count":10}' -s http://localhost:5000/api/groups
+```
+
+update group
+
+```bash
+curl -X PATCH -H "Content-Type: application/json" -d '{}' -s http://localost:5000/api/groups/group_name
+```
+
 
 ## Asterisk setup
 

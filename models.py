@@ -1,5 +1,6 @@
 from apiConfig import db, app
-
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm.session import object_session
 
 # Create your Flask-SQLALchemy models as usual but with the following two
 # (reasonable) restrictions:
@@ -11,7 +12,7 @@ from apiConfig import db, app
 
 tunel_table = db.Table('association', db.Model.metadata,
     db.Column('User_id', db.Integer, db.ForeignKey('users.id_')),
-    db.Column('CreditsRegister_id', db.Integer, db.ForeignKey('cr.id_'))
+    db.Column('Groups_id', db.Integer, db.ForeignKey('groups.id_'))
 )
 
 class User(db.Model):
@@ -26,7 +27,7 @@ class User(db.Model):
     clid        = db.Column(db.String(9), nullable=False, unique=True)
     balance     = db.Column(db.Float, default=0)
     admin       = db.Column(db.Boolean)
-    tunel       = db.relationship('CreditsRegister', secondary=tunel_table)
+    tunel       = db.relationship('Groups', secondary=tunel_table)
 
     def __init__(self , username ,password, clid, balance, admin):
         self.username   = username
@@ -73,23 +74,69 @@ class CDR(db.Model):
         return '<from=%s date=%s duration=%s>' % (self.from_user, self.answer,
                                                   self.billsec)
 
-class CreditsRegister(db.Model):
+class Groups(db.Model):
     """
     # Register Credits if 
     """
-    __tablename__ = 'cr'
+    __tablename__ = 'groups'
 
     id_ = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode)
-    date_to_update = db.Column(db.DateTime)
+    dates_to_update = db.relationship('Dates')
     tunel = db.relationship('User', secondary=tunel_table)
 
-    def __init__(self, name, date_to_update):
+    def __init__(self, name):
         self.name = name
-        self.date_to_update = date_to_update
 
     def __repr__(self):
-        return 'CreditsDate %r' % (self.name)
+        return 'GROUPS %r' % (self.name)
+
+    @hybrid_property
+    def newUser(self):
+        return 0
+
+    @newUser.setter
+    def newUser(self, userIds):
+        for userId in userIds:
+            self.tunel.append(User.query.filter_by(id_=userId).first())
+            db.session.add(self)
+        db.session.commit()
+
+    @hybrid_property
+    def removeUser(self):
+        return 0
+
+    @removeUser.setter
+    def removeUser(self, userIds):
+        for userId in userIds:
+            self.tunel.remove(User.query.filter_by(id_=userId).first())
+
+    @hybrid_property
+    def updateGroup(self):
+        return 0
+
+    @updateGroup.setter
+    def updateGroup(self, check):
+        if check == 1:
+            deleteDate = Dates.query.filter_by(group_id=self.id_).first()
+            db.session.delete(deleteDate)
+            for var in self.tunel:
+                db.session.query(User).filter_by(id_=var.id_)\
+                    .update({'balance':'1250'})
+
+class Dates(db.Model):
+
+    __tablename__ = 'dates'
+
+    id_ = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('groups.id_'))
+    date = db.Column(db.DateTime)
+
+    def __init__(self, date):
+        self.date = date
+
+    def __repr__(self):
+        return 'DATES %r' % (self.id_)
 
 # Create the database tables.
 db.create_all()
