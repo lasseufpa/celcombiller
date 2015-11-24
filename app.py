@@ -1,8 +1,8 @@
 import flask
 from flask import Flask, session, request, flash, url_for, redirect, \
     render_template, abort
-from apiConfig import db, app, login_manager
-from models import CDR, User, Groups, Dates
+from config import db, app, login_manager
+from models import CDR, User, Groups, Dates, Ballance
 from time import strftime
 from datetime import *
 from dateutil.rrule import *
@@ -35,7 +35,7 @@ def login():
             return render_template('ERROR.html')
         login_user(registered_user)
         json_with_names = check_time()
-        return render_template('loginsuc.html', json=json_with_names)
+        return "Hello, cross-origin-world!"
 
 def check_time():
     if not current_user.is_admin():
@@ -192,9 +192,18 @@ manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
 manager.create_api(
     User,
     preprocessors={
-        'POST': [auth, preprocessor_check_adm],
-        'GET_MANY': [auth, preprocessor_check_adm],
-        'GET_SINGLE': [auth, preprocessors_check_adm_or_normal_user],
+        'POST': [
+            # auth,
+            # preprocessor_check_adm
+        ],
+        'GET_MANY': [
+            # auth,
+            # preprocessor_check_adm
+        ],
+        'GET_SINGLE': [
+            # auth,
+            # preprocessors_check_adm_or_normal_user
+        ],
         'PATCH_SINGLE': [
             auth,
             preprocessors_check_adm_or_normal_user,
@@ -235,6 +244,11 @@ manager.create_api(
     postprocessors={
         'POST': [add_dates_to_group, add_users_to_group],
     },
+    methods=['POST', 'GET', 'PATCH', 'DELETE'],
+    results_per_page=100,
+    primary_key='name')
+
+manager.create_api(Ballance,
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
     primary_key='name')

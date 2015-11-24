@@ -1,6 +1,7 @@
-from apiConfig import db, app
-from sqlalchemy.ext.hybrid import hybrid_property
+from config import db, app
+from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.orm.session import object_session
+from sqlalchemy.dialects.postgresql import ENUM
 
 # Create your Flask-SQLALchemy models as usual but with the following two
 # (reasonable) restrictions:
@@ -25,16 +26,11 @@ class User(db.Model):
     username    = db.Column(db.Unicode, unique=True)
     password    = db.Column(db.Integer)
     clid        = db.Column(db.String(9), nullable=False, unique=True)
-    balance     = db.Column(db.Float, default=0)
+    # balance     = db.Column(db.Float, default=0)
+    # balance_chg = db.relationship('bc')
     admin       = db.Column(db.Boolean)
     tunel       = db.relationship('Groups', secondary=tunel_table)
 
-    def __init__(self , username ,password, clid, balance, admin):
-        self.username   = username
-        self.password   = password
-        self.clid       = clid
-        self.balance    = balance
-        self.admin      = admin
 
     def is_admin(self):
         return self.admin
@@ -50,6 +46,25 @@ class User(db.Model):
 
     def get_id(self):
         return unicode(self.id_)
+
+    @hybrid_property
+    def BallanceUser(self):
+        # TODO: Maybe it should use object_session
+        positiveValues = Ballance.query.filter_by(usersId=self.id_).filter_by(signal=unicode('-'))
+        print positiveValues[0]
+            # .filter_by(signal=unicode('-'))
+        return 0
+        # query = object_session(self).query(Ballance)\
+        # print query
+        # return 0
+
+    def __init__(self , username, password, clid, admin):
+        self.username    = username
+        self.password    = password
+        self.clid        = clid
+        # self.balance     = balance
+        # self.balance_chg = balance_chg
+        self.admin       = admin
 
     def __repr__(self):
         return '<User %r>' % (self.username)
@@ -76,7 +91,7 @@ class CDR(db.Model):
 
 class Groups(db.Model):
     """
-    # Register Credits if 
+    # Register Credits if
     """
     __tablename__ = 'groups'
 
@@ -137,6 +152,26 @@ class Dates(db.Model):
 
     def __repr__(self):
         return 'DATES %r' % (self.id_)
+
+class Ballance(db.Model):
+
+    __tablename__ = 'ballance'
+
+    id_     = db.Column(db.Integer, primary_key=True)
+    usersId = db.Column(db.Integer, db.ForeignKey('users.id_'))
+    date    = db.Column(db.DateTime)
+    type_   = db.Column(ENUM('increase', 'decrease'))
+    value   = db.Column(db.Integer)
+    signal  = db.Column(db.String(1))
+
+    def __init__(self, date, type_, value, signal):
+        self.date   = date
+        self.type_  = type_
+        self.value  = value
+        self.signal = signal
+
+    def __repr__(self):
+        return 'balance %r' % (self.id_)
 
 # Create the database tables.
 db.create_all()
