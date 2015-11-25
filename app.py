@@ -236,7 +236,10 @@ manager.create_api(
             put_user_id_in_buffer,
             transform_to_utc
         ],
-        'GET_MANY': [auth, preprocessor_check_adm],
+        'GET_MANY': [
+        # auth,
+        # preprocessor_check_adm
+        ],
         'GET_SINGLE': [auth, preprocessor_check_adm],
         'PATCH_SINGLE': [auth, preprocessor_check_adm],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
@@ -250,8 +253,7 @@ manager.create_api(
 
 manager.create_api(Ballance,
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
-    results_per_page=100,
-    primary_key='name')
+    results_per_page=100)
 
 # start the flask loop
 app.debug = True

@@ -3,6 +3,8 @@ from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.orm.session import object_session
 from sqlalchemy.dialects.postgresql import ENUM
 
+row2dict = lambda r: {c.name: str(getattr(r, c.name)) for c in r.__table__.columns}
+
 # Create your Flask-SQLALchemy models as usual but with the following two
 # (reasonable) restrictions:
 #   1. They must have a primary key column of type sqlalchemy.Integer or
@@ -26,8 +28,6 @@ class User(db.Model):
     username    = db.Column(db.Unicode, unique=True)
     password    = db.Column(db.Integer)
     clid        = db.Column(db.String(9), nullable=False, unique=True)
-    # balance     = db.Column(db.Float, default=0)
-    # balance_chg = db.relationship('bc')
     admin       = db.Column(db.Boolean)
     tunel       = db.relationship('Groups', secondary=tunel_table)
 
@@ -50,20 +50,30 @@ class User(db.Model):
     @hybrid_property
     def BallanceUser(self):
         # TODO: Maybe it should use object_session
-        positiveValues = Ballance.query.filter_by(usersId=self.id_).filter_by(signal=unicode('-'))
-        print positiveValues[0]
-            # .filter_by(signal=unicode('-'))
-        return 0
-        # query = object_session(self).query(Ballance)\
-        # print query
-        # return 0
+        userBalanceNeg = Ballance.query.filter_by(usersId=self.id_).filter_by(signal=unicode('-'))
+        userBalancePos = Ballance.query.filter_by(usersId=self.id_).filter_by(signal=unicode('+'))
+        countNeg = 0
+        countPos = 0
+        for x in userBalanceNeg:
+            countNeg = countNeg + x.value
+        for x in userBalancePos:
+            countPos = countPos + x.value
+        return countPos - countNeg
+
+    @hybrid_property
+    def BallanceUserHistoric(self):
+        # TODO: Maybe it should use object_session
+        ballances = Ballance.query.filter_by(usersId=self.id_).limit(10)
+        historic_list = []
+        for y in ballances:
+            historic_list.append(row2dict(y))
+
+        return historic_list
 
     def __init__(self , username, password, clid, admin):
         self.username    = username
         self.password    = password
         self.clid        = clid
-        # self.balance     = balance
-        # self.balance_chg = balance_chg
         self.admin       = admin
 
     def __repr__(self):
