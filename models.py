@@ -63,9 +63,9 @@ class User(db.Model):
     @hybrid_property
     def BallanceUserHistoric(self):
         # TODO: Maybe it should use object_session
-        ballances = Ballance.query.filter_by(usersId=self.id_).limit(10)
+        balances = Ballance.query.order_by(Ballance.id_.desc()).filter_by(usersId=self.id_).limit(10)
         historic_list = []
-        for y in ballances:
+        for y in balances:
             historic_list.append(row2dict(y))
 
         return historic_list
@@ -165,7 +165,7 @@ class Dates(db.Model):
 
 class Ballance(db.Model):
 
-    __tablename__ = 'ballance'
+    __tablename__ = 'balance'
 
     id_     = db.Column(db.Integer, primary_key=True)
     usersId = db.Column(db.Integer, db.ForeignKey('users.id_'))

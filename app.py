@@ -124,6 +124,27 @@ def transform_to_utc(*args, **kargs):
             db.session.commit()
         pass
 
+def date_now(*args, **kargs):
+    global buffer_usersId
+    buffer_usersId = kargs['data']['userId']
+    # print userId
+    del kargs['data']['userId']
+    # userId = User.query.filter_by(id_=userId).first()
+    # buffer_usersId = userId.id_
+    # print userId.id_
+    # buffer_usersId = userId
+    kargs['data']['date'] = datetime.now().strftime("")
+
+def add_user_balance(*args, **kargs):
+    global buffer_usersId
+    data = request.data
+    request_body = json.loads(data)
+    request_body['userId']
+    x = Ballance.query.order_by(Ballance.id_.desc()).first()
+    x.usersId = request_body['userId']
+    db.session.add(x)
+    db.session.commit()
+
 @app.route('/logout')
 def logout():
     logout_user()
@@ -160,7 +181,7 @@ def preprocessor_check_adm(*args, **kargs):
 
 
 def preprocessors_patch(instance_id=None, data=None, **kargs):
-    user_cant_change = ["admin", "balance", "clid", "id_",
+    user_cant_change = ["admin", "clid", "id_",
                         "originated_calls", "received_calls, tunel"]
     admin_cant_change = ["id_", "originated_calls", "received_calls"]
     if current_user.is_admin():
@@ -212,26 +233,37 @@ manager.create_api(
         'PATCH_MANY': [auth, preprocessor_check_adm],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
+    exclude_columns=[
+        'password'
+    ],
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     allow_patch_many=True,
-    primary_key='username')
+    primary_key='username'
+)
 
 manager.create_api(
     CDR,
     preprocessors={
-        'GET_MANY': [auth, preprocessor_check_adm],
-        'GET_SINGLE': [auth, preprocessors_check_adm_or_normal_user],
+        'GET_MANY': [
+            # auth,
+            # preprocessor_check_adm
+        ],
+        'GET_SINGLE': [
+            # auth,
+            # preprocessors_check_adm_or_normal_user
+        ],
         'PATCH_SINGLE': [auth, preprocessors_patch],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
-    methods=['GET','PATCH', 'DELETE'])
+    methods=['GET','PATCH', 'DELETE']
+)
 
 manager.create_api(
     Groups,
     preprocessors={
         'POST': [
-            auth,
-            preprocessor_check_adm,
+            # auth,
+            # preprocessor_check_adm,
             already_has_group,
             put_user_id_in_buffer,
             transform_to_utc
@@ -241,19 +273,53 @@ manager.create_api(
         # preprocessor_check_adm
         ],
         'GET_SINGLE': [auth, preprocessor_check_adm],
-        'PATCH_SINGLE': [auth, preprocessor_check_adm],
+        'PATCH_SINGLE': [
+        # auth,
+        # preprocessor_check_adm
+        ],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
         'POST': [add_dates_to_group, add_users_to_group],
     },
+    exclude_columns=[
+        'newUser',
+        'removeUser',
+        'updateGroup'
+    ],
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
-    primary_key='name')
+    primary_key='name'
+)
 
-manager.create_api(Ballance,
+manager.create_api(
+    Ballance,
+    preprocessors={
+        'POST': [
+            # auth,
+            # preprocessor_check_adm,
+            # already_has_group,
+            # put_user_id_in_buffer,
+            # transform_to_utc
+            date_now
+        ],
+        'GET_MANY': [
+        # auth,
+        # preprocessor_check_adm
+        ],
+        # 'GET_SINGLE': [auth, preprocessor_check_adm],
+        'PATCH_SINGLE': [
+        # auth,
+        # preprocessor_check_adm
+        ],
+        # 'DELETE_SINGLE': [auth, preprocessor_check_adm],
+    },
+    postprocessors={
+    'POST': [add_user_balance]
+    },
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
-    results_per_page=100)
+    results_per_page=100,
+)
 
 # start the flask loop
 app.debug = True

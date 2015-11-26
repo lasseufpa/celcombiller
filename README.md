@@ -65,7 +65,7 @@ curl -X DELETE -s http://localhost:5000/api/users/yourusername -b cookiefile
 add group
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d '{"name":"group_name","day":1, "month":1, "year":3000, "count":10}' -s http://localhost:5000/api/groups
+curl -X POST -H "Content-Type: application/json" -d '{"name":"group_name","day":1, "month":1, "year":3000, "count":10, "users":[id_]}' -s http://localhost:5000/api/groups
 ```
 
 update group
