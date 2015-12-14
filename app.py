@@ -125,15 +125,10 @@ def transform_to_utc(*args, **kargs):
         pass
 
 def date_now(*args, **kargs):
+    kargs['data']['date'] = unicode(datetime.now())
     global buffer_usersId
     buffer_usersId = kargs['data']['userId']
-    # print userId
     del kargs['data']['userId']
-    # userId = User.query.filter_by(id_=userId).first()
-    # buffer_usersId = userId.id_
-    # print userId.id_
-    # buffer_usersId = userId
-    kargs['data']['date'] = datetime.now().strftime("")
 
 def add_user_balance(*args, **kargs):
     global buffer_usersId
@@ -214,16 +209,16 @@ manager.create_api(
     User,
     preprocessors={
         'POST': [
-            # auth,
-            # preprocessor_check_adm
+            auth,
+            preprocessor_check_adm
         ],
         'GET_MANY': [
-            # auth,
-            # preprocessor_check_adm
+            auth,
+            preprocessor_check_adm
         ],
         'GET_SINGLE': [
-            # auth,
-            # preprocessors_check_adm_or_normal_user
+            auth,
+            preprocessors_check_adm_or_normal_user
         ],
         'PATCH_SINGLE': [
             auth,
@@ -245,12 +240,12 @@ manager.create_api(
     CDR,
     preprocessors={
         'GET_MANY': [
-            # auth,
-            # preprocessor_check_adm
+            auth,
+            preprocessor_check_adm
         ],
         'GET_SINGLE': [
-            # auth,
-            # preprocessors_check_adm_or_normal_user
+            auth,
+            preprocessors_check_adm_or_normal_user
         ],
         'PATCH_SINGLE': [auth, preprocessors_patch],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
@@ -262,20 +257,20 @@ manager.create_api(
     Groups,
     preprocessors={
         'POST': [
-            # auth,
-            # preprocessor_check_adm,
+            auth,
+            preprocessor_check_adm,
             already_has_group,
             put_user_id_in_buffer,
             transform_to_utc
         ],
         'GET_MANY': [
-        # auth,
-        # preprocessor_check_adm
+            auth,
+            preprocessor_check_adm
         ],
         'GET_SINGLE': [auth, preprocessor_check_adm],
         'PATCH_SINGLE': [
-        # auth,
-        # preprocessor_check_adm
+            auth,
+            preprocessor_check_adm
         ],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
@@ -296,23 +291,23 @@ manager.create_api(
     Ballance,
     preprocessors={
         'POST': [
-            # auth,
-            # preprocessor_check_adm,
-            # already_has_group,
-            # put_user_id_in_buffer,
-            # transform_to_utc
+            auth,
+            preprocessor_check_adm,
+            already_has_group,
+            put_user_id_in_buffer,
+            transform_to_utc
             date_now
         ],
         'GET_MANY': [
-        # auth,
-        # preprocessor_check_adm
+            auth,
+            preprocessor_check_adm
         ],
-        # 'GET_SINGLE': [auth, preprocessor_check_adm],
+        'GET_SINGLE': [auth, preprocessor_check_adm],
         'PATCH_SINGLE': [
-        # auth,
-        # preprocessor_check_adm
+            auth,
+            preprocessor_check_adm
         ],
-        # 'DELETE_SINGLE': [auth, preprocessor_check_adm],
+        'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
     'POST': [add_user_balance]

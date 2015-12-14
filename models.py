@@ -2,6 +2,7 @@ from config import db, app
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.orm.session import object_session
 from sqlalchemy.dialects.postgresql import ENUM
+from datetime import *
 
 row2dict = lambda r: {c.name: str(getattr(r, c.name)) for c in r.__table__.columns}
 
@@ -169,7 +170,7 @@ class Ballance(db.Model):
 
     id_     = db.Column(db.Integer, primary_key=True)
     usersId = db.Column(db.Integer, db.ForeignKey('users.id_'))
-    date    = db.Column(db.DateTime)
+    date    = db.Column(db.DateTime())
     type_   = db.Column(ENUM('increase', 'decrease'))
     value   = db.Column(db.Integer)
     signal  = db.Column(db.String(1))

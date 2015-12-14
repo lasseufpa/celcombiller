@@ -33,20 +33,40 @@ db.session.commit()
 
 please check adduser.py
 
-## Using curl to test api
+
+
+## To test api
+
+To test the api we will use curl
 
 ###USER
 
-login
+login is required to test:
 
 ```bash
 curl -c cookiefile -d "username=admin&password=adm123" -X POST -s http://localhost:5000/login
 ```
 
-add user
+now to add user:
 
 ```bash
-curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"username":"yourusername","password":"yourpassword","clid":"999999999","balance":"0","admin":'false'}' -s http://localhost:5000/api/users
+curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"username":"yourusername","password":"yourpassword","clid":"999999999", "admin":'false'}' -s http://localhost:5000/api/users
+```
+
+the balance came by another table, so we want add balance to user we need run:
+
+add balance:
+
+```bash
+curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"signal":"+", "type_":"increase", "value": "1000", "userId":1}' -s http://localhost:5000/api/balance
+
+#note that userId need some user id, in that case we use 1
+```
+
+remove balance:
+
+```bash
+curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"signal":"+", "type_":"increase", "value": "1000", "userId":1}' -s http://localhost:5000/api/balance
 ```
 
 update user
@@ -54,6 +74,7 @@ update user
 ```bash
 curl -X PATCH -H "Content-Type: application/json" -d '{"username":"yournewusername","password":"yournewpassowrd"}' -s http://localhost:5000/api/users/youroldusername -b cookiefile
 ```
+
 remove user
 
 ```bash

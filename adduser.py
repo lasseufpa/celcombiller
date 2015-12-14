@@ -5,7 +5,7 @@ from models import User, Ballance
 
 # admin = User('admin', 'adm123', '999999999', '9999', True)
 # guest = User('guest', '123123', '999999998', '0000', False)
-guest = User('guest3', '123123', '399991998', True)
+# guest = User('guest3', '123123', '399991998', True)
 # admin = User('admin', 'adm123', '999999999', '9999', True)
 
 # db.session.add(admin)
