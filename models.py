@@ -31,7 +31,7 @@ class User(db.Model):
     clid        = db.Column(db.String(9), nullable=False, unique=True)
     admin       = db.Column(db.Boolean)
     tunel       = db.relationship('Groups', secondary=tunel_table)
-
+    imsi        = db.Column(db.Integer, unique=True)
 
     def is_admin(self):
         return self.admin
@@ -71,11 +71,12 @@ class User(db.Model):
 
         return historic_list
 
-    def __init__(self , username, password, clid, admin):
-        self.username    = username
-        self.password    = password
-        self.clid        = clid
-        self.admin       = admin
+    def __init__(self , username ,password, clid, balance, admin, imsi ):
+        self.username   = username
+        self.password   = password
+        self.clid       = clid
+        self.admin      = admin
+        self.imsi       = imsi
 
     def __repr__(self):
         return '<User %r>' % (self.username)

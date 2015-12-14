@@ -12,6 +12,7 @@ from flask_restless import ProcessingException
 from flask.ext.login import login_user , logout_user , current_user ,\
     login_required
 import json
+from openbts import to_openbts
 
 @app.route('/')
 def index():
@@ -169,9 +170,7 @@ def auth(*args, **kargs):
 
 
 def preprocessor_check_adm(*args, **kargs):
-    if current_user.is_admin():
-        pass
-    else:
+    if not current_user.is_admin():
         raise ProcessingException(description='Forbidden', code=403)
 
 
@@ -192,11 +191,7 @@ def preprocessors_patch(instance_id=None, data=None, **kargs):
 
 
 def preprocessors_check_adm_or_normal_user(instance_id=None, **kargs):
-    if current_user.is_admin():
-        pass
-    elif current_user.username == instance_id:
-        pass
-    else:
+    if not (current_user.is_admin() or current_user.username == instance_id):
         raise ProcessingException(description='Forbidden', code=403)
 
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
@@ -228,6 +223,9 @@ manager.create_api(
         'PATCH_MANY': [auth, preprocessor_check_adm],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
+	postprocessors={
+		'POST':[to_openbts]
+	},
     exclude_columns=[
         'password'
     ],
