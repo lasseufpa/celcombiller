@@ -20,7 +20,7 @@ Each SIP user must be inserted in the database of users with a balance. The pyth
 ```python
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
-from apiConfig import db
+from config import db
 from models import User
 
 admin = User('admin', 'adm123', '999999999', '9999', True)
@@ -50,7 +50,7 @@ curl -c cookiefile -d "username=admin&password=adm123" -X POST -s http://localho
 now to add user:
 
 ```bash
-curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"username":"yourusername","password":"yourpassword","clid":"999999999", "admin":'false'}' -s http://localhost:5000/api/users
+curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"username":"yourusername","password":"yourpassword","clid":"999999999","imsi":"12345678900" "admin":'false'}' -s http://localhost:5000/api/users
 ```
 
 the balance came by another table, so we want add balance to user we need run:

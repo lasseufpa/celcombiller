@@ -289,11 +289,7 @@ manager.create_api(
     Ballance,
     preprocessors={
         'POST': [
-            auth,
             preprocessor_check_adm,
-            already_has_group,
-            put_user_id_in_buffer,
-            transform_to_utc
             date_now
         ],
         'GET_MANY': [

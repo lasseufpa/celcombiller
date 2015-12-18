@@ -71,7 +71,7 @@ class User(db.Model):
 
         return historic_list
 
-    def __init__(self , username ,password, clid, balance, admin, imsi ):
+    def __init__(self , username ,password, clid,admin, imsi ):
         self.username   = username
         self.password   = password
         self.clid       = clid
@@ -176,11 +176,13 @@ class Ballance(db.Model):
     value   = db.Column(db.Integer)
     signal  = db.Column(db.String(1))
 
-    def __init__(self, date, type_, value, signal):
+    def __init__(self, date, type_, value, signal, usersId=None):
         self.date   = date
         self.type_  = type_
         self.value  = value
         self.signal = signal
+	if usersId is not None:
+		self.usersId = usersId
 
     def __repr__(self):
         return 'balance %r' % (self.id_)
