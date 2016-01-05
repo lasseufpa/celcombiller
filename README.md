@@ -98,36 +98,51 @@ curl -X PATCH -H "Content-Type: application/json" -d '{}' -s http://localost:500
 
 ## Asterisk setup
 
-With a working Asterisk server you must have at least two SIP accounts. An example of the corresponding section of `sip.conf` follows.
+With a working OpenBTS  Asterisk server you must modify the file /etc/asterisk/extensions-range.conf as follow:
+
+Between the lines:
 
 ```
-[1000000000]
-type=friend
-secret=laps
-host=dynamic
-context=celcom
+exten => h,             1,Log(NOTICE,A-Number=${CDR(A-Number)} A-Name=${CDR(A-Name)} A-IMSI=${CDR(A-IMSI)} B-Number=${CDR(B-Number)} B-Name=${CDR(B-Name)} B-IMSI=${CDR(B-IMSI)} hangupcause=${HANGUPCAUSE} dialstatus=${DIALSTATUS} hangupdirection=${CDR(hangupdirection)} duration=${CDR(duration)} billsec=${CDR(billsec)})
 
-[2000000000]
-type=friend
-secret=laps
-host=dynamic
-context=celcom
+same => n,Hangup()
 ```
 
-The referenced context in `sip.conf` must exist in the `extensions.conf` the code bellow is an example.
+You have to write the command:
 
 ```
-[celcom]
-exten => _ZXXXXXXXX,1,AGI(celcombiller)
+same =>                 n,AGI(celcombiller_reducer)   ;reduce the user balance
+
 ```
 
-celcombiller is an AGI, implemented in the file [celcombiller.py](celcombiller.py) and it must run in the virtual environment created in the first section, a file with something like the content bellow should be created in `/var/lib/asterisk/agi-bin` with execution permission.
 
+Change the line:
+
+```
+same =>                        n,Dial(SIP/${ARG1}@${ARG2}:${ARG3},${IF(${VM_INFO(${CDR(B-Number)},exists)}?${DialIMSITimeoutVM}:${DialPSTNTimeout})},g)
+```
+
+To:
+
+```
+same =>                 n,AGI(celcombiller_caller)
+```
+
+
+
+celcombiller is an AGI, implemented in the files  [celcombiller_reducer.py](celcombiller_reducer.py) and  [celcombiller_caller.py](celcombiller_caler.py),they must run in the virtual environment created in the first section. The follow files must be created in `/usr/share/asterisk/agi-bin/`  with execution permission.
+
+celcombiller_caller
 ```bash
 #!/bin/bash
-/home/psb/Dropbox/git-projects/celcombiller/venv/bin/python /home/psb/git-projects/celcombiller/celcombiller.py
+/path_to_venv/venv/bin/python /path_to_celcombiller/celcombiller/celcombiller_caller.py
 ```
 
+celcombiller_reducer
+```bash
+#!/bin/bash
+/path_to_venv/venv/bin/python /path_to_celcombiller/celcombiller/celcombiller_reducer.py
+```
 
 
 

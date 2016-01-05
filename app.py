@@ -237,6 +237,10 @@ manager.create_api(
 manager.create_api(
     CDR,
     preprocessors={
+        'POST': [
+            auth,
+            preprocessor_check_adm
+        ],
         'GET_MANY': [
             auth,
             preprocessor_check_adm
@@ -248,7 +252,7 @@ manager.create_api(
         'PATCH_SINGLE': [auth, preprocessors_patch],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
-    methods=['GET','PATCH', 'DELETE']
+    methods=['POST','GET','PATCH', 'DELETE']
 )
 
 manager.create_api(

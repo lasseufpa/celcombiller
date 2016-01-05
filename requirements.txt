@@ -5,3 +5,4 @@ Flask-Restless==0.17.0
 Flask-SQLAlchemy==2.0
 flask-login==0.3.0
 pyzmq==15.0.0
+requests==2.9.0

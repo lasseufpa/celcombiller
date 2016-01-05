@@ -19,7 +19,8 @@ to_user = User.query.filter_by(
 
 
 try:
-    agi.appexec('DIAL', 'SIP/IMSI%s@127.0.0.1:5062,40,S(%d)' % (to_user.imsi, from_user.BallanceUser))
+    agi.appexec('DIAL', 'SIP/IMSI%s@127.0.0.1:5062,40,S(%d)' %\
+            (to_user.imsi, from_user.BallanceUser))
 except AGIAppError:
     pass
 
