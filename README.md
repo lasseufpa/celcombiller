@@ -167,3 +167,8 @@ print p.addresses.count() # 1
 print p.addresses[0] # <Address object at 0x10c098ed0>
 print p.addresses.filter_by(email='foo@bar.com').count() # 1
 
+
+## Upstart
+
+To have Celcombiler as service you have to modify the file celcombiller.conf and put it in /etc/init
+
