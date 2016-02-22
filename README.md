@@ -145,30 +145,7 @@ celcombiller_reducer
 ```
 
 
-
-
-You dont need to write a constructor, you can either treat the addresses property on a Person instance as a list:
-
-a = Address(email='foo@bar.com')
-p = Person(name='foo')
-p.addresses.append(a)
-
-Or you can pass a list of addresses to the Person constructor
-
-a = Address(email='foo@bar.com')
-p = Person(name='foo', addresses=[a])
-
-In either case you can then access the addresses on your Person instance like so:
-
-db.session.add(p)
-db.session.add(a)
-db.session.commit()
-print p.addresses.count() # 1
-print p.addresses[0] # <Address object at 0x10c098ed0>
-print p.addresses.filter_by(email='foo@bar.com').count() # 1
-
-
 ## Upstart
 
-To have Celcombiler as service you have to modify the file celcombiller.conf and put it in /etc/init
+To have Celcombiler running as a service you have to modify the file celcombiller.conf and put it in your /etc/init directory.
 
