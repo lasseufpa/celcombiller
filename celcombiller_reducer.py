@@ -10,12 +10,10 @@ from datetime import datetime
 import asterisk.agi
 #from asterisk.agi import AGIAppError
 from models import User
-
+from config import adm_user,adm_pssw
 import requests
 import json
 
-adm_user = 'admin'
-adm_pssw = 'adm123'
 
 agi = asterisk.agi.AGI()
 
@@ -50,7 +48,6 @@ if agi.get_variable('DIALSTATUS') == 'ANSWER':
     if r.ok == False:
         pass
 
-    print from_user.id_
     payload = '{"signal":"-", "type_":"decrease", "value": "'+ str(billsec) +\
             '", "userId":'+ str(from_user.id_) +'}'
 

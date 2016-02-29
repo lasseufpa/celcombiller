@@ -3,10 +3,15 @@ import flask.ext.sqlalchemy
 import flask.ext.restless
 from flask.ext.login import LoginManager
 
+#adm login and password
+adm_user = 'admin'
+adm_pssw = 'adm123'
+
+
 # Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/alph.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/alph.db' 
 
 db = flask.ext.sqlalchemy.SQLAlchemy(app)
 
