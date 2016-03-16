@@ -135,11 +135,20 @@ def add_user_balance(*args, **kargs):
     global buffer_usersId
     data = request.data
     request_body = json.loads(data)
-    request_body['userId']
-    x = Ballance.query.order_by(Ballance.id_.desc()).first()
-    x.usersId = request_body['userId']
-    db.session.add(x)
-    db.session.commit()
+    # check if we are passing the user id or the imsi in the userId field
+    if request_body['userId'] < 1e13:
+        x = Ballance.query.order_by(Ballance.id_.desc()).first()
+        x.usersId = request_body['userId']
+        print x,"aqui"
+        db.session.add(x)
+        db.session.commit()
+    else:
+        x = Ballance.query.order_by(Ballance.id_.desc()).first()
+        x.usersId =  User.query.filter_by( imsi=request_body['userId'] ).first().id_
+        print x,"2"
+	db.session.add(x)
+        db.session.commit()
+
 
 @app.route('/logout')
 def logout():
@@ -165,9 +174,9 @@ def auth(*args, **kargs):
     """
     Required API request to be authenticated
     """
-    if not current_user.is_authenticated():
-        raise ProcessingException(description='Not authenticated', code=401)
-
+    #if not current_user.is_authenticated():
+    #    raise ProcessingException(description='Not authenticated', code=401)
+    pass
 
 def preprocessor_check_adm(*args, **kargs):
     if not current_user.is_admin():
@@ -204,8 +213,8 @@ manager.create_api(
     User,
     preprocessors={
         'POST': [
-            auth,
-            preprocessor_check_adm
+            auth
+          #  preprocessor_check_adm
         ],
         'GET_MANY': [
             auth,
@@ -293,7 +302,7 @@ manager.create_api(
     Ballance,
     preprocessors={
         'POST': [
-            preprocessor_check_adm,
+ #           preprocessor_check_adm,
             date_now
         ],
         'GET_MANY': [
