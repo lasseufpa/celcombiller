@@ -139,13 +139,11 @@ def add_user_balance(*args, **kargs):
     if request_body['userId'] < 1e13:
         x = Ballance.query.order_by(Ballance.id_.desc()).first()
         x.usersId = request_body['userId']
-        print x,"aqui"
         db.session.add(x)
         db.session.commit()
     else:
         x = Ballance.query.order_by(Ballance.id_.desc()).first()
         x.usersId =  User.query.filter_by( imsi=request_body['userId'] ).first().id_
-        print x,"2"
 	db.session.add(x)
         db.session.commit()
 
