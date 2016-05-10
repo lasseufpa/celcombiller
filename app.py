@@ -21,7 +21,6 @@ def index():
     """
     return render_template('index.html')
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
@@ -37,6 +36,17 @@ def login():
         login_user(registered_user)
         json_with_names = check_time()
         return "Hello, cross-origin-world!"
+
+@app.route('/check_balance', methods=['GET','POST'])
+def check_balance(*args, **kargs):
+    data = request.data
+    request_body = json.loads(data)
+    ## Is it a better way to handle the exception when the user is not found ?
+    try:
+        x = User.query.filter_by(imsi =request_body['imsi']).first().BallanceUser 
+        return str(x)
+    except AttributeError:
+        return "none"
 
 def check_time():
     if not current_user.is_admin():
@@ -139,13 +149,11 @@ def add_user_balance(*args, **kargs):
     if request_body['userId'] < 1e13:
         x = Ballance.query.order_by(Ballance.id_.desc()).first()
         x.usersId = request_body['userId']
-        db.session.add(x)
-        db.session.commit()
     else:
         x = Ballance.query.order_by(Ballance.id_.desc()).first()
         x.usersId =  User.query.filter_by( imsi=request_body['userId'] ).first().id_
-	db.session.add(x)
-        db.session.commit()
+    db.session.add(x)
+    db.session.commit()
 
 
 @app.route('/logout')
