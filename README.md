@@ -21,7 +21,11 @@ Each SIP user must be inserted in the database of users with a balance. The pyth
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from config import db
+<<<<<<< HEAD
 from models import User, Ballance
+=======
+from models import User, Ballance, Groups
+>>>>>>> fd869d56292ad801c5f9ff2e48088b8e9fd84405
 
 admin = User(True,'administrator', 'nowhere', '000','admin', 'adm123', '999999999','999999999999999', '0' ,'0')
 guest = User(True,'guest', 'nowhere', '1','guest', '123123', '999999998','999999999999998', '0' ,'0')
@@ -51,6 +55,11 @@ curl -c cookiefile -d "username=admin&password=adm123" -X POST -s http://localho
 now to add user:
 
 ```bash
+<<<<<<< HEAD
+=======
+curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"username":"testphone","password":"yourpassword","clid":"87654321","imsi":"724059100470553", "admin":'false',"name":"testphone","adress":"lasse","cpf":"001","voice_balance":"0","data_balance":"0"}' -s http://localhost:5000/api/users
+
+>>>>>>> fd869d56292ad801c5f9ff2e48088b8e9fd84405
 
 curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"username":"yourusername","password":"yourpassword","clid":"999999999","imsi":"12345678900", "admin":'false', "name":"administrator","adress":"lasse","cpf":"000","voice_balance":"0","data_balance":"0"}' -s http://localhost:5000/api/users
 ```
