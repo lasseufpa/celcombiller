@@ -43,7 +43,18 @@ def check_balance(*args, **kargs):
     request_body = json.loads(data)
     ## Is it a better way to handle the exception when the user is not found ?
     try:
-        x = User.query.filter_by(imsi =request_body['imsi']).first().BallanceUser 
+        x = User.query.filter_by(imsi =request_body['imsi']).first().BallanceUser()
+        return str(x)
+    except AttributeError:
+        return "none"
+
+@app.route('/check_data_balance', methods=['GET','POST'])
+def check_daata_balance(*args, **kargs):
+    data = request.data
+    request_body = json.loads(data)
+    ## Is it a better way to handle the exception when the user is not found ?
+    try:
+        x = User.query.filter_by(imsi =request_body['imsi']).first().DataBallanceUser()
         return str(x)
     except AttributeError:
         return "none"
@@ -139,7 +150,7 @@ def date_now(*args, **kargs):
     kargs['data']['date'] = unicode(datetime.now())
     global buffer_usersId
     buffer_usersId = kargs['data']['userId']
-    del kargs['data']['userId']
+    #del kargs['data']['userId']
 
 def add_user_balance(*args, **kargs):
     global buffer_usersId
@@ -324,7 +335,7 @@ manager.create_api(
     },
     postprocessors={
     'POST': [add_user_balance]
-    },
+    },  
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
 )

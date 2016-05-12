@@ -25,13 +25,21 @@ class User(db.Model):
     """
     __tablename__ = 'users'
 
-    id_         = db.Column(db.Integer, primary_key=True)
-    username    = db.Column(db.Unicode, unique=True)
-    password    = db.Column(db.Integer)
+
+
+    id_         = db.Column(db.Integer, primary_key=True, nullable=False)
+    admin       = db.Column(db.Boolean, nullable=False)
+    name        = db.Column(db.Unicode, nullable=False)
+    adress      = db.Column(db.Unicode)
+    cpf         = db.Column(db.Integer, nullable=False)
+    username    = db.Column(db.Unicode, nullable=False, unique=True)
+    password    = db.Column(db.Unicode, nullable=False)
     clid        = db.Column(db.String(9), nullable=False, unique=True)
-    admin       = db.Column(db.Boolean)
+    imsi        = db.Column(db.Integer, nullable=False, unique=True)
+    voice_balance = db.Column(db.Integer, nullable=False)
+    data_balance = db.Column(db.Integer, nullable=False)
+
     tunel       = db.relationship('Groups', secondary=tunel_table)
-    imsi        = db.Column(db.Integer, unique=True)
 
     def is_admin(self):
         return self.admin
@@ -48,35 +56,35 @@ class User(db.Model):
     def get_id(self):
         return unicode(self.id_)
 
-    @hybrid_property
     def BallanceUser(self):
-        # TODO: Maybe it should use object_session
-        userBalanceNeg = Ballance.query.filter_by(usersId=self.id_).filter_by(signal=unicode('-'))
-        userBalancePos = Ballance.query.filter_by(usersId=self.id_).filter_by(signal=unicode('+'))
-        countNeg = 0
-        countPos = 0
-        for x in userBalanceNeg:
-            countNeg = countNeg + x.value
-        for x in userBalancePos:
-            countPos = countPos + x.value
-        return countPos - countNeg
+        return self.voice_balance
+
+    def DataBallanceUser(self):
+        return self.data_balance
 
     @hybrid_property
     def BallanceUserHistoric(self):
         # TODO: Maybe it should use object_session
-        balances = Ballance.query.order_by(Ballance.id_.desc()).filter_by(usersId=self.id_).limit(10)
+        balances = Ballance.query.order_by(Ballance.id_.desc()).filter_by(userId=self.id_).limit(10)
         historic_list = []
         for y in balances:
             historic_list.append(row2dict(y))
 
         return historic_list
 
-    def __init__(self , username ,password, clid,admin, imsi ):
+    def __init__(self ,  admin, name, adress, cpf, username, password, clid, imsi, voice_balance, data_balance ):
+        self.admin  = admin
+        self.name   = name   
+        self.adress = adress
+        self.cpf    = cpf
         self.username   = username
         self.password   = password
-        self.clid       = clid
-        self.admin      = admin
-        self.imsi       = imsi
+        self.clid   = clid
+        self.imsi   = imsi
+        self.voice_balance = voice_balance
+        self.data_balance = data_balance
+
+
 
     def __repr__(self):
         return '<User %r>' % (self.username)
@@ -165,27 +173,53 @@ class Dates(db.Model):
     def __repr__(self):
         return 'DATES %r' % (self.id_)
 
+
+
 class Ballance(db.Model):
 
     __tablename__ = 'balance'
 
     id_     = db.Column(db.Integer, primary_key=True)
-    usersId = db.Column(db.Integer, db.ForeignKey('users.id_'))
+    userId = db.Column(db.Integer, db.ForeignKey('users.id_'))
     date    = db.Column(db.DateTime())
     type_   = db.Column(ENUM('increase', 'decrease'))
     value   = db.Column(db.Integer)
     signal  = db.Column(db.String(1))
+    balance   = db.Column(ENUM('voice', 'data'))
 
-    def __init__(self, date, type_, value, signal, usersId=None):
-        self.date   = date
+
+    def __init__(self, type_, value,balance, signal, userId,date=None):
+        self.date   = datetime.now()
         self.type_  = type_
         self.value  = value
         self.signal = signal
-	if usersId is not None:
-		self.usersId = usersId
+        self.balance = balance
+        self.userId = userId
+
+        if balance == 'voice':
+            if type_ == 'increase':
+                user = db.session.query(User).filter_by(id_=userId).first()
+                user.voice_balance = user.data_balance + int(value)
+            elif type_ == 'decrease':
+                user = db.session.query(User).filter_by(id_=userId).first()
+                user.voice_balance = user.data_balance - int(value)
+            db.session.commit()
+        
+        elif balance == 'data':
+            if type_ == 'increase':
+                user = db.session.query(User).filter_by(id_=userId).first()
+                user.data_balance = user.data_balance + int(value)
+            elif type_ == 'decrease':
+                user = db.session.query(User).filter_by(id_=userId).first()
+                user.data_balance = user.data_balance - int(value)
+            db.session.commit()
+
 
     def __repr__(self):
         return 'balance %r' % (self.id_)
+
+
+
 
 # Create the database tables.
 db.create_all()
