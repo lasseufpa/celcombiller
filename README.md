@@ -21,13 +21,14 @@ Each SIP user must be inserted in the database of users with a balance. The pyth
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 from config import db
-from models import User
+from models import User, Ballance, Groups
 
-admin = User('admin', 'adm123', '999999999', '9999', True)
-guest = User('guest', '123123', '999999999', '0000', False)
+admin = User(True,'administrator', 'nowhere', '000','admin', 'adm123', '999999999','999999999999999', '0' ,'0')
+guest = User(True,'guest', 'nowhere', '1','guest', '123123', '999999998','999999999999998', '0' ,'0')
 
 db.session.add(admin)
 db.session.add(guest)
+
 db.session.commit()
 ```
 
@@ -50,7 +51,10 @@ curl -c cookiefile -d "username=admin&password=adm123" -X POST -s http://localho
 now to add user:
 
 ```bash
-curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"username":"yourusername","password":"yourpassword","clid":"999999999","imsi":"12345678900" "admin":'false'}' -s http://localhost:5000/api/users
+curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"username":"testphone","password":"yourpassword","clid":"87654321","imsi":"724059100470553", "admin":'false',"name":"testphone","adress":"lasse","cpf":"001","voice_balance":"0","data_balance":"0"}' -s http://localhost:5000/api/users
+
+
+curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"username":"yourusername","password":"yourpassword","clid":"999999999","imsi":"12345678900", "admin":'false', "name":"administrator","adress":"lasse","cpf":"000","voice_balance":"0","data_balance":"0"}' -s http://localhost:5000/api/users
 ```
 
 the balance came by another table, so we want add balance to user we need run:
@@ -58,7 +62,7 @@ the balance came by another table, so we want add balance to user we need run:
 add balance:
 
 ```bash
-curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"signal":"+", "type_":"increase", "value": "1000", "userId":1}' -s http://localhost:5000/api/balance
+curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"signal":"+", "type_":"increase", "value": "1000", "userId":1,"balance":"voice"}' -s http://localhost:5000/api/balance
 
 #note that userId need some user id, in that case we use 1
 ```
@@ -66,7 +70,7 @@ curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"signal":"+"
 remove balance:
 
 ```bash
-curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"signal":"+", "type_":"increase", "value": "1000", "userId":1}' -s http://localhost:5000/api/balance
+curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"signal":"+", "type_":"increase", "value": "1000", "userId":1, "balance":"voice"}' -s http://localhost:5000/api/balance
 ```
 
 update user
