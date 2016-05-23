@@ -2,7 +2,8 @@ import flask
 from flask import Flask, session, request, flash, url_for, redirect, \
     render_template, abort
 from config import db, app, login_manager
-from models import CDR, User, Groups, Dates, Ballance
+from models import  User, VoiceBalance, DataBalance, Schedules, ScheduleInput, \
+    ScheduleUser
 from time import strftime
 from datetime import *
 from dateutil.rrule import *
@@ -14,6 +15,7 @@ from flask.ext.login import login_user , logout_user , current_user ,\
 import json
 from openbts import to_openbts
 
+
 @app.route('/')
 def index():
     """
@@ -21,6 +23,8 @@ def index():
     """
     return render_template('index.html')
 
+
+# Login, if the user does not exist it returs a error page
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'GET':
@@ -33,90 +37,105 @@ def login():
         if registered_user is None:
             flash('Username or Password is invalid', 'error')
             return render_template('ERROR.html')
-        login_user(registered_user)
-        json_with_names = check_time()
-        return "Hello, cross-origin-world!"
-
-@app.route('/check_balance', methods=['GET','POST'])
-def check_balance(*args, **kargs):
-    data = request.data
-    request_body = json.loads(data)
-    ## Is it a better way to handle the exception when the user is not found ?
-    try:
-        x = User.query.filter_by(imsi =request_body['imsi']).first().BallanceUser()
-        return str(x)
-    except AttributeError:
-        return "none"
-
-@app.route('/check_data_balance', methods=['GET','POST'])
-def check_daata_balance(*args, **kargs):
-    data = request.data
-    request_body = json.loads(data)
-    ## Is it a better way to handle the exception when the user is not found ?
-    try:
-        x = User.query.filter_by(imsi =request_body['imsi']).first().DataBallanceUser()
-        return str(x)
-    except AttributeError:
-        return "none"
-
-def check_time():
-    if not current_user.is_admin():
-        return False
-    else:
-        json_need_update = []
-        groups = Groups.query.all()
-        for group in groups:
-            boolean_time = (group.dates_to_update[0].date - datetime.now())\
-                .total_seconds()
-            boolean_time = 1 if boolean_time < 0 else 0
-            if boolean_time == 1:
-                json_need_update.append(group.name)
-        if json_need_update == []:
-            return None
+        if login_user(registered_user):
+            return "Hello, cross-origin-world!"
         else:
-            return json_need_update
+            flash('Flask Login error', 'error')
+            return render_template('ERROR.html')
+        #json_with_names = check_time()
 
 
-def already_has_group(data=None, **kargs):
+# Returns the user data balance
+@app.route('/check_data_balance', methods=['GET', 'POST'])
+def check_data_balance(*args, **kargs):
     data = request.data
     request_body = json.loads(data)
-    group = Groups.query.\
+    # Is it a better way to handle the exception when the user is not found ?
+    try:
+        x = User.query.filter_by(
+            imsi=request_body['imsi']).first().DataBalance()
+        return str(x)
+    except AttributeError:
+        return "none"
+
+# Returns the user voice balance
+
+
+@app.route('/check_voice_balance', methods=['GET', 'POST'])
+def check_voice_balance(*args, **kargs):
+    data = request.data
+    request_body = json.loads(data)
+    # Is it a better way to handle the exception when the user is not found ?
+    try:
+        x = User.query.filter_by(
+            imsi=request_body['imsi']).first().VoiceBalance()
+        return str(x)
+    except AttributeError:
+        return "none"
+
+
+# I dont know what this function does so I commented it.
+# def check_time():
+#     if not current_user.is_admin():
+#         return False
+#     else:
+#         json_need_update = []
+#         schedules = Schedules.query.all()
+#         for schedule in schedules:
+#             boolean_time = (schedule.dates_to_update[0].date - datetime.now())\
+#                 .total_seconds()
+#             boolean_time = 1 if boolean_time < 0 else 0
+#             if boolean_time == 1:
+#                 json_need_update.append(schedule.name)
+#         if json_need_update == []:
+#             return None
+#         else:
+#             return json_need_update
+
+# Check if the user has a schedule
+def schedule_exists(data=None, **kargs):
+    data = request.data
+    request_body = json.loads(data)
+    schedule = Schedules.query.\
         filter_by(name=request_body['name']).first()
-    if group is not None:
-        raise ProcessingException(description='Already has this Group', code=400)
+    if schedule is not None:
+        raise ProcessingException(
+            description='A schedule with this name already exists', code=400)
     else:
         pass
 
-def put_user_id_in_buffer(*args, **kargs):
-    data = request.data
-    request_body = json.loads(data)
-    global buffer_usersId
-    buffer_usersId = request_body['users']
-    del kargs['data']['users']
+# Let's put onlt one user at time in the schedule
+# def put_user_id_in_buffer(*args, **kargs):
+#     data = request.data
+#     request_body = json.loads(data)
+#     global buffer_usersId
+#     buffer_usersId = request_body['users']
+#     del kargs['data']['users']
 
-def add_users_to_group(*args, **kargs):
-    global buffer_usersId
-    data = request.data
-    request_body = json.loads(data)
-    group = Groups.query\
-        .filter_by(name=request_body['name']).first()
-    for userId in buffer_usersId:
-        user = User.query.filter_by(id_=userId).first()
-        group.tunel.append(user)
-    db.session.add(group)
-    db.session.commit()
-    pass
+# def add_users_to_schedule(*args, **kargs):
+#     global buffer_usersId
+#     data = request.data
+#     request_body = json.loads(data)
+#     schedule = Schedules.query\
+#         .filter_by(name=request_body['name']).first()
+#     #for userId in buffer_usersId:
+#     user = User.query.filter_by(id_=userId).first()
+#         schedule.tunel.append(user)
+#     db.session.add(schedule)
+#     db.session.commit()
+#     pass
 
-def add_dates_to_group(*args, **kargs):
-    global data_count
-    data = request.data
-    request_body = json.loads(data)
-    group = Groups.query.\
-        filter_by(name=request_body['name']).first()
-    listOfdates = Dates.query.order_by(Dates.id_.desc()).limit(data_count)
-    for date in listOfdates:
-        group.dates_to_update.append(date)
-    pass
+# def add_dates_to_schedule(*args, **kargs):
+#     global data_count
+#     data = request.data
+#     request_body = json.loads(data)
+#     schedule = Schedules.query.\
+#         filter_by(name=request_body['name']).first()
+#     listOfdates = Dates.query.order_by(Dates.id_.desc()).limit(data_count)
+#     for date in listOfdates:
+#         schedule.dates_to_update.append(date)
+#     pass
+
 
 def transform_to_utc(*args, **kargs):
     global data_count
@@ -131,7 +150,7 @@ def transform_to_utc(*args, **kargs):
     month = int(request_body['month'])
     how_many = int(request_body['count'])
     if year < min_year or ((month < min_month) and (year <= min_year)) or \
-        (day < min_day and (month <= min_month and year <= min_year)):
+            (day < min_day and (month <= min_month and year <= min_year)):
         raise ProcessingException(description='Date not accept', code=400)
     else:
         del kargs['data']['day']
@@ -146,23 +165,38 @@ def transform_to_utc(*args, **kargs):
             db.session.commit()
         pass
 
-def date_now(*args, **kargs):
-    kargs['data']['date'] = unicode(datetime.now())
-    global buffer_usersId
-    buffer_usersId = kargs['data']['userId']
-    #del kargs['data']['userId']
+# def date_now(*args, **kargs):
+#     kargs['data']['date'] = unicode(datetime.now())
+#     global buffer_usersId
+#     buffer_usersId = kargs['data']['userId']
+#     #del kargs['data']['userId']
 
-def add_user_balance(*args, **kargs):
+
+def add_user_data_balance(*args, **kargs):
     global buffer_usersId
     data = request.data
     request_body = json.loads(data)
-    # check if we are passing the user id or the imsi in the userId field
+    # Check if we are passing the user id or the imsi in the userId field, it is necessary because
+    # Openbts users IMSI only.
     if request_body['userId'] < 1e13:
-        x = Ballance.query.order_by(Ballance.id_.desc()).first()
+        x = DataBalance.query.order_by(DataBalance.id_.desc()).first()
         x.usersId = request_body['userId']
     else:
-        x = Ballance.query.order_by(Ballance.id_.desc()).first()
-        x.usersId =  User.query.filter_by( imsi=request_body['userId'] ).first().id_
+        x = DataBalance.query.order_by(Balance.id_.desc()).first()
+        x.usersId = User.query.filter_by(
+            imsi=request_body['userId']).first().id_
+    db.session.add(x)
+    db.session.commit()
+
+
+def add_user_voice_balance(*args, **kargs):
+    global buffer_usersId
+    data = request.data
+    request_body = json.loads(data)
+
+    x = VoiceBalance.query.order_by(VoiceBalance.id_.desc()).first()
+    x.usersId = request_body['userId']
+
     db.session.add(x)
     db.session.commit()
 
@@ -187,22 +221,33 @@ def check_login():
     return render_template('check.html')
 
 
+@app.route('/checkadm')
+def checkadm():
+    """
+    Index page, just show the logged username
+    """
+
+    return str(current_user)
+
+
 def auth(*args, **kargs):
     """
     Required API request to be authenticated
     """
-    #if not current_user.is_authenticated():
-    #    raise ProcessingException(description='Not authenticated', code=401)
+    if not current_user.is_authenticated():
+        raise ProcessingException(description='Not authenticated', code=401)
     pass
 
+
 def preprocessor_check_adm(*args, **kargs):
+    print str(current_user)
     if not current_user.is_admin():
         raise ProcessingException(description='Forbidden', code=403)
 
 
 def preprocessors_patch(instance_id=None, data=None, **kargs):
     user_cant_change = ["admin", "clid", "id_",
-                        "originated_calls", "received_calls, tunel"]
+                        "originated_calls", "received_calls"]
     admin_cant_change = ["id_", "originated_calls", "received_calls"]
     if current_user.is_admin():
         for x in data.keys():
@@ -223,15 +268,15 @@ def preprocessors_check_adm_or_normal_user(instance_id=None, **kargs):
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
 
 # Create the Flask-Restless API manager.
-# Create API endpoints, which will be available at /api/<tablename> by
+# Create API endpoints, which will be available at /pi/<tablename> by
 # default. Allowed HTTP methods can be specified as well.
 
 manager.create_api(
     User,
     preprocessors={
         'POST': [
-            auth
-          #  preprocessor_check_adm
+            auth,
+            preprocessor_check_adm
         ],
         'GET_MANY': [
             auth,
@@ -249,9 +294,9 @@ manager.create_api(
         'PATCH_MANY': [auth, preprocessor_check_adm],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
-	postprocessors={
-		'POST':[to_openbts]
-	},
+    postprocessors={
+        'POST': [to_openbts]
+    },
     exclude_columns=[
         'password'
     ],
@@ -261,34 +306,13 @@ manager.create_api(
 )
 
 manager.create_api(
-    CDR,
+    Schedules,
     preprocessors={
         'POST': [
-            auth,
-            preprocessor_check_adm
-        ],
-        'GET_MANY': [
-            auth,
-            preprocessor_check_adm
-        ],
-        'GET_SINGLE': [
-            auth,
-            preprocessors_check_adm_or_normal_user
-        ],
-        'PATCH_SINGLE': [auth, preprocessors_patch],
-        'DELETE_SINGLE': [auth, preprocessor_check_adm],
-    },
-    methods=['POST','GET','PATCH', 'DELETE']
-)
-
-manager.create_api(
-    Groups,
-    preprocessors={
-        'POST': [
-            auth,
-            preprocessor_check_adm,
-            already_has_group,
-            put_user_id_in_buffer,
+            # auth,
+            # preprocessor_check_adm,
+            # schedule_exists,
+            # put_user_id_in_buffer,
             transform_to_utc
         ],
         'GET_MANY': [
@@ -303,24 +327,24 @@ manager.create_api(
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
-        'POST': [add_dates_to_group, add_users_to_group],
+        #'POST': [add_dates_to_schedule, add_users_to_schedule],
+        'POST': [],
     },
     exclude_columns=[
         'newUser',
         'removeUser',
-        'updateGroup'
+        'updateSchedule'
     ],
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
-    results_per_page=100,
-    primary_key='name'
+    results_per_page=100
 )
 
 manager.create_api(
-    Ballance,
+    ScheduleUser,
     preprocessors={
         'POST': [
- #           preprocessor_check_adm,
-            date_now
+            preprocessor_check_adm,
+            # date_now
         ],
         'GET_MANY': [
             auth,
@@ -334,11 +358,63 @@ manager.create_api(
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
-    'POST': [add_user_balance]
-    },  
+        'POST': []
+    },
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
 )
+
+
+manager.create_api(
+    VoiceBalance,
+    preprocessors={
+        'POST': [
+            preprocessor_check_adm,
+            # date_now
+        ],
+        'GET_MANY': [
+            auth,
+            preprocessor_check_adm
+        ],
+        'GET_SINGLE': [auth, preprocessor_check_adm],
+        'PATCH_SINGLE': [
+            auth,
+            preprocessor_check_adm
+        ],
+        'DELETE_SINGLE': [auth, preprocessor_check_adm],
+    },
+    postprocessors={
+        'POST': [add_user_voice_balance]
+    },
+    methods=['POST', 'GET', 'PATCH', 'DELETE'],
+    results_per_page=100,
+)
+
+manager.create_api(
+    DataBalance,
+    preprocessors={
+        'POST': [
+            #           preprocessor_check_adm,
+            # date_now
+        ],
+        'GET_MANY': [
+            auth,
+            preprocessor_check_adm
+        ],
+        'GET_SINGLE': [auth, preprocessor_check_adm],
+        'PATCH_SINGLE': [
+            auth,
+            preprocessor_check_adm
+        ],
+        'DELETE_SINGLE': [auth, preprocessor_check_adm],
+    },
+    postprocessors={
+        'POST': [add_user_data_balance]
+    },
+    methods=['POST', 'GET', 'PATCH', 'DELETE'],
+    results_per_page=100,
+)
+
 
 # start the flask loop
 app.debug = True

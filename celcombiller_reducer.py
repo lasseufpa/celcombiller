@@ -38,7 +38,7 @@ if agi.get_variable('DIALSTATUS') == 'ANSWER':
     # Create a new CDR record
     payload = '{"answer":"'+ str(answer)+'", "billsec":"'+ \
             str(billsec)+'", "from_user_id": '+\
-            str(from_user.id_)+', "to_user_id":'+ str(to_user.id_)+'}'
+            str(from_user.get_id)+', "to_user_id":'+ str(to_user.get_id)+'}'
 
     #Send the requestto update the user balance
     r = s.post('http://localhost:5000/api/cdr', json=json.loads(payload),\
@@ -49,7 +49,7 @@ if agi.get_variable('DIALSTATUS') == 'ANSWER':
         pass
 
     payload = '{"signal":"-", "type_":"decrease", "value": "'+ str(billsec) +\
-            '", "userId":'+ str(from_user.id_) +'}'
+            '", "userId":'+ str(from_user.get_id) +'}'
 
     # Send the requestto update the user balance
     r = s.post('http://localhost:5000/api/balance',\
