@@ -59,7 +59,7 @@ class User(db.Model):
     def VoiceBalanceHistoric(self):
         # TODO: Maybe it should use object_session
         balances = VoiceBalance.query.order_by(
-            VoiceBalance._id.desc()).filter_by(user_id=self._id).limit(10)
+            VoiceBalance._id.desc()).filter_by(from_user_id=self._id).limit(10)
         historic_list = []
         for y in balances:
             historic_list.append(row2dict(y))
@@ -144,19 +144,22 @@ class VoiceBalance(db.Model):
     date = db.Column(db.DateTime, nullable=False)
     origin = db.Column(db.String, nullable=False)
 
-    from_user = db.relationship('User', backref='originated_calls',
-                                foreign_keys=from_user_id)
-    to_user = db.relationship('User', backref='received_calls',
-                              foreign_keys=to_user_id)
+    # from_user = db.relationship('User', backref='originated_calls',
+    #                             foreign_keys=from_user_id)
+    # to_user = db.relationship('User', backref='received_calls',
+    #                           foreign_keys=to_user_id)
 
-    def __init__(self, from_user_id, value, data, origin, to_user_id=None):
+    def __init__(self, from_user_id, value, origin, to_user_id=None, date=None):
         self.from_user_id = from_user_id
         self.to_user_id = to_user_id
         self.value = value
-        self.data = data
         self.origin = origin
+        if date != None:
+            self.date = date
+        else:
+            self.date = datetime.now()
 
-        user = db.session.query(User).filter_by(_id=user_id).first()
+        user = db.session.query(User).filter_by(_id=from_user_id).first()
         user.voice_balance = user.voice_balance + int(value)
 
     def __repr__(self):
@@ -177,16 +180,20 @@ class DataBalance(db.Model):
     connection_ip = db.Column(db.String)
     origin = db.Column(db.String, nullable=False)
 
-    def __init__(self, user_id, value, origin, user_ip=None, connection_ip=None):
+    def __init__(self, user_id, value, origin, user_ip=None, connection_ip=None,date=None):
 
         self.user_id = user_id
         self.value = value
-        self.date = datetime.now()
         self.user_ip = user_ip
         self.connection_ip = connection_ip
         self.origin = origin
 
-        user = db.session.query(User).filter_by(imsi=user_id).first()
+        if date != None:
+            self.date = date
+        else:
+            self.date = datetime.now()
+
+        user = db.session.query(User).filter_by(_id=user_id).first()
         user.data_balance = user.data_balance + int(value)
 
     def __repr__(self):
@@ -198,13 +205,14 @@ class ScheduleInput(db.Model):
 
     _id = db.Column(db.Integer, primary_key=True)
     schedule_id = db.Column(db.Integer, db.ForeignKey('schedule._id'))
-    voice_balance_id=db.Column(db.Integer, db.ForeignKey('voice_balance._id'))
-    data_balance_id=db.Column(db.Integer, db.ForeignKey('data_balance._id'))
+    voice_balance_id = db.Column(
+        db.Integer, db.ForeignKey('voice_balance._id'))
+    data_balance_id = db.Column(db.Integer, db.ForeignKey('data_balance._id'))
 
     def __init__(self, schedule_id, voice_balance_id, data_balance_id):
-        self.schedule_id=schedule_id
-        self.voice_balance_id=voice_balance_id
-        self.data_balance_id=data_balance_id
+        self.schedule_id = schedule_id
+        self.voice_balance_id = voice_balance_id
+        self.data_balance_id = data_balance_id
 
     def __repr__(self):
         return 'schedule_input %r' % (self._id)

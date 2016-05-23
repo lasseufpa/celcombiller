@@ -59,7 +59,8 @@ the balance came by another table, so we want add balance to user we need run:
 add/remove data balance:
 
 ```bash
-curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"value": "1000", "userId":1}' -s http://localhost:5000/api/data_balance
+curl -b cookiefile -H "Content-Type: application/json" -X POST -d '{"value": "1000", "user_id":3,"origin":"web"}' -s http://localhost:5000/api/data_balance
+
 
 #note that userId need some user id, in that case we use 1
 #to remove balance the value must be negative

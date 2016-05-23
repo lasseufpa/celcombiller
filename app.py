@@ -105,21 +105,21 @@ def schedule_exists(data=None, **kargs):
         pass
 
 # Let's put onlt one user at time in the schedule
-# def put_user_id_in_buffer(*args, **kargs):
+# def put_user__idin_buffer(*args, **kargs):
 #     data = request.data
 #     request_body = json.loads(data)
-#     global buffer_usersId
-#     buffer_usersId = request_body['users']
+#     global buffer_users_id
+#     buffer_users_id = request_body['users']
 #     del kargs['data']['users']
 
 # def add_users_to_schedule(*args, **kargs):
-#     global buffer_usersId
+#     global buffer_users_id
 #     data = request.data
 #     request_body = json.loads(data)
 #     schedule = Schedules.query\
 #         .filter_by(name=request_body['name']).first()
-#     #for userId in buffer_usersId:
-#     user = User.query.filter_by(id_=userId).first()
+#     #for user_id in buffer_users_id:
+#     user = User.query.filter_by(_id=user_id).first()
 #         schedule.tunel.append(user)
 #     db.session.add(schedule)
 #     db.session.commit()
@@ -131,7 +131,7 @@ def schedule_exists(data=None, **kargs):
 #     request_body = json.loads(data)
 #     schedule = Schedules.query.\
 #         filter_by(name=request_body['name']).first()
-#     listOfdates = Dates.query.order_by(Dates.id_.desc()).limit(data_count)
+#     listOfdates = Dates.query.order_by(Dates._id.desc()).limit(data_count)
 #     for date in listOfdates:
 #         schedule.dates_to_update.append(date)
 #     pass
@@ -167,35 +167,35 @@ def transform_to_utc(*args, **kargs):
 
 # def date_now(*args, **kargs):
 #     kargs['data']['date'] = unicode(datetime.now())
-#     global buffer_usersId
-#     buffer_usersId = kargs['data']['userId']
-#     #del kargs['data']['userId']
+#     global buffer_users_id
+#     buffer_users_id = kargs['data']['user_id']
+#     #del kargs['data']['user_id']
 
 
 def add_user_data_balance(*args, **kargs):
-    global buffer_usersId
+    global buffer_users_id
     data = request.data
     request_body = json.loads(data)
-    # Check if we are passing the user id or the imsi in the userId field, it is necessary because
+    # Check if we are passing the user id or the imsi in the user_id field, it is necessary because
     # Openbts users IMSI only.
-    if request_body['userId'] < 1e13:
-        x = DataBalance.query.order_by(DataBalance.id_.desc()).first()
-        x.usersId = request_body['userId']
+    if request_body['user_id'] < 1e13:
+        x = DataBalance.query.order_by(DataBalance._id.desc()).first()
+        x.users_id = request_body['user_id']
     else:
-        x = DataBalance.query.order_by(Balance.id_.desc()).first()
-        x.usersId = User.query.filter_by(
-            imsi=request_body['userId']).first().id_
+        x = DataBalance.query.order_by(Balance._id.desc()).first()
+        x.users_id = User.query.filter_by(
+            imsi=request_body['user_id']).first()._id
     db.session.add(x)
     db.session.commit()
 
 
 def add_user_voice_balance(*args, **kargs):
-    global buffer_usersId
+    global buffer_users_id
     data = request.data
     request_body = json.loads(data)
 
-    x = VoiceBalance.query.order_by(VoiceBalance.id_.desc()).first()
-    x.usersId = request_body['userId']
+    x = VoiceBalance.query.order_by(VoiceBalance._id.desc()).first()
+    x.users_id = request_body['from_user_id']
 
     db.session.add(x)
     db.session.commit()
@@ -208,8 +208,8 @@ def logout():
 
 
 @login_manager.user_loader
-def load_user(id_):
-    return User.query.get(int(id_))
+def load_user(_id):
+    return User.query.get(int(_id))
 
 
 @app.route('/check')
@@ -246,9 +246,9 @@ def preprocessor_check_adm(*args, **kargs):
 
 
 def preprocessors_patch(instance_id=None, data=None, **kargs):
-    user_cant_change = ["admin", "clid", "id_",
+    user_cant_change = ["admin", "clid", "_id",
                         "originated_calls", "received_calls"]
-    admin_cant_change = ["id_", "originated_calls", "received_calls"]
+    admin_cant_change = ["_id", "originated_calls", "received_calls"]
     if current_user.is_admin():
         for x in data.keys():
             if x in admin_cant_change:
@@ -312,7 +312,7 @@ manager.create_api(
             # auth,
             # preprocessor_check_adm,
             # schedule_exists,
-            # put_user_id_in_buffer,
+            # put_user__idin_buffer,
             transform_to_utc
         ],
         'GET_MANY': [
