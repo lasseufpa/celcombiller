@@ -1,16 +1,14 @@
 import flask
-from flask import Flask, session, request, flash, url_for, redirect, \
-    render_template, abort
+from flask import request, flash, render_template
 from config import db, app, login_manager
-from models import  User, VoiceBalance, DataBalance, Schedules, ScheduleInput, \
+from models import User, VoiceBalance, DataBalance, Schedules, ScheduleInput, \
     ScheduleUser
-from time import strftime
 from datetime import *
 from dateutil.rrule import *
 from dateutil.parser import *
 from dateutil.relativedelta import *
 from flask_restless import ProcessingException
-from flask.ext.login import login_user , logout_user , current_user ,\
+from flask.ext.login import login_user, logout_user, current_user,\
     login_required
 import json
 from openbts import to_openbts
@@ -21,7 +19,13 @@ def index():
     """
     Index page, just show the logged username
     """
-    return render_template('index.html')
+    try:
+        if current_user.is_authenticated():
+            return render_template('index.html')
+        else:
+            return "no else"
+    except Exception:
+        return render_template('anonymous.html')
 
 
 # Login, if the user does not exist it returs a error page
@@ -42,7 +46,7 @@ def login():
         else:
             flash('Flask Login error', 'error')
             return render_template('ERROR.html')
-        #json_with_names = check_time()
+        # json_with_names = check_time()
 
 
 # Returns the user data balance
@@ -176,8 +180,8 @@ def add_user_data_balance(*args, **kargs):
     global buffer_users_id
     data = request.data
     request_body = json.loads(data)
-    # Check if we are passing the user id or the imsi in the user_id field, it is necessary because
-    # Openbts users IMSI only.
+    # Check if we are passing the user id or the imsi in the user_id field, it
+    # is necessary because Openbts users IMSI only.
     if request_body['user_id'] < 1e13:
         x = DataBalance.query.order_by(DataBalance._id.desc()).first()
         x.users_id = request_body['user_id']
@@ -275,12 +279,12 @@ manager.create_api(
     User,
     preprocessors={
         'POST': [
-            auth,
-            preprocessor_check_adm
+            # auth,
+            # preprocessor_check_adm
         ],
         'GET_MANY': [
-            auth,
-            preprocessor_check_adm
+            # auth,
+            # preprocessor_check_adm
         ],
         'GET_SINGLE': [
             auth,
@@ -327,7 +331,7 @@ manager.create_api(
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
-        #'POST': [add_dates_to_schedule, add_users_to_schedule],
+        # 'POST': [add_dates_to_schedule, add_users_to_schedule],
         'POST': [],
     },
     exclude_columns=[

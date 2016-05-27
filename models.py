@@ -154,7 +154,7 @@ class VoiceBalance(db.Model):
         self.to_user_id = to_user_id
         self.value = value
         self.origin = origin
-        if date != None:
+        if date is not None:
             self.date = date
         else:
             self.date = datetime.now()
@@ -180,7 +180,7 @@ class DataBalance(db.Model):
     connection_ip = db.Column(db.String)
     origin = db.Column(db.String, nullable=False)
 
-    def __init__(self, user_id, value, origin, user_ip=None, connection_ip=None,date=None):
+    def __init__(self, user_id, value, origin, user_ip=None, connection_ip=None, date=None):
 
         self.user_id = user_id
         self.value = value
@@ -188,7 +188,7 @@ class DataBalance(db.Model):
         self.connection_ip = connection_ip
         self.origin = origin
 
-        if date != None:
+        if date is not None:
             self.date = date
         else:
             self.date = datetime.now()

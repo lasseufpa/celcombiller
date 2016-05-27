@@ -10,7 +10,7 @@
 ```bash
 $ virtualenv -p /usr/bin/python2.7 venv
 $ source venv/bin/activate
-$ pip install --allow-external pyst --allow-unverified pyst -r requirements.txt
+$ pip install --allow-external --allow-unverified -r requirements.txt
 ```
 
 ## Database setup
@@ -42,7 +42,7 @@ To test the api we will use curl
 
 ###USER
 
-login is required to test:
+you must login before test the api:
 
 ```bash
 curl -c cookiefile -d "username=admin&password=adm123" -X POST -s http://localhost:5000/login
