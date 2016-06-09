@@ -34,6 +34,12 @@ class User(db.Model):
     voice_balance = db.Column(db.Integer, nullable=False)
     data_balance = db.Column(db.Integer, nullable=False)
 
+   # ki = db.Column(db.Integer)
+   # city = db.Column(db.Unicode)
+   # state = db.Column(db.Unicode)
+   # postalcode = db.Column(db.Integer)
+   # 
+    
     def is_admin(self):
         return self.admin
 

@@ -12,7 +12,8 @@ adm_pssw = 'adm123'
 # Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/alph.db' 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/vitor/celcombiller/alph.db'
+
 
 # Ability cross domain
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})

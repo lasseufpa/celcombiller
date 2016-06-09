@@ -27,6 +27,9 @@ def index():
     except Exception:
         return render_template('anonymous.html')
 
+@app.route('/test',methods=['GET'])
+def test():
+    return "rodou"
 
 # Login, if the user does not exist it returs a error page
 @app.route('/login', methods=['GET', 'POST'])
@@ -238,16 +241,16 @@ def auth(*args, **kargs):
     """
     Required API request to be authenticated
     """
-    if not current_user.is_authenticated():
-        raise ProcessingException(description='Not authenticated', code=401)
+    print args
+    #if not current_user.is_authenticated():
+    #    raise ProcessingException(description='Not authenticated', code=401)
     pass
 
 
 def preprocessor_check_adm(*args, **kargs):
-    print str(current_user)
-    if not current_user.is_admin():
-        raise ProcessingException(description='Forbidden', code=403)
-
+   # if not current_user.is_admin():
+   #     raise ProcessingException(description='Forbidden', code=403)
+    pass
 
 def preprocessors_patch(instance_id=None, data=None, **kargs):
     user_cant_change = ["admin", "clid", "_id",
@@ -287,8 +290,8 @@ manager.create_api(
             # preprocessor_check_adm
         ],
         'GET_SINGLE': [
-            auth,
-            preprocessors_check_adm_or_normal_user
+            # auth,
+            # preprocessors_check_adm_or_normal_user
         ],
         'PATCH_SINGLE': [
             auth,
@@ -373,7 +376,7 @@ manager.create_api(
     VoiceBalance,
     preprocessors={
         'POST': [
-            preprocessor_check_adm,
+           #preprocessor_check_adm,
             # date_now
         ],
         'GET_MANY': [
