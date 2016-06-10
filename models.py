@@ -25,11 +25,11 @@ class User(db.Model):
     _id = db.Column(db.Integer, primary_key=True, nullable=False)
     admin = db.Column(db.Boolean, nullable=False)
     name = db.Column(db.Unicode, nullable=False)
-    adress = db.Column(db.Unicode)
+    address = db.Column(db.Unicode)
     cpf = db.Column(db.Integer, nullable=False,  unique=True)
     username = db.Column(db.Unicode, nullable=False, unique=True)
     password = db.Column(db.Unicode, nullable=False)
-    clid = db.Column(db.String(9), nullable=False, unique=True)
+    clid = db.Column(db.Unicode(9), nullable=False, unique=True)
     imsi = db.Column(db.Integer, nullable=False, unique=True)
     voice_balance = db.Column(db.Integer, nullable=False)
     data_balance = db.Column(db.Integer, nullable=False)
@@ -81,10 +81,10 @@ class User(db.Model):
             historic_list.append(row2dict(y))
         return historic_list
 
-    def __init__(self, admin, name, cpf, username, password, clid, imsi, voice_balance, data_balance, adress=None):
+    def __init__(self, admin=None, name=None, cpf=None, username=None, password=None, clid=None, imsi=None, voice_balance=None, data_balance=None, address=None):
         self.admin = admin
         self.name = name
-        self.adress = adress
+        self.address = address
         self.cpf = cpf
         self.username = username
         self.password = password
