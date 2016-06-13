@@ -36,25 +36,15 @@ if agi.get_variable('DIALSTATUS') == 'ANSWER':
         data={'username': adm_user, 'password': adm_pssw}
     )
 
-    # Create a new CDR record
-    payload = '{"answer":"' + str(answer) + '", "billsec":"' + \
-        str(billsec) + '", "from_user_id": ' +\
-        str(from_user.get_id) + ', "to_user_id":' + str(to_user.get_id) + '}'
+    payload = {'from_user_id':from_user.get_id,
+                'to_user_id':to_user.get_id,
+                'value':billsec*(-1),
+                'origin':'call',
+                'date':answer}
 
-    # Send the requestto update the user balance
-    r = s.post('http://localhost:5000/api/cdr', json=json.loads(payload),
-               headers={'content-type': 'application/json'})
-
-    # TODO: Handle when the request fail
-    if r.ok is False:
-        pass
-
-    payload = '{"signal":"-", "type_":"decrease", "value": "' + str(billsec) +\
-        '", "userId":' + str(from_user.get_id) + '}'
-
-    # Send the requestto update the user balance
-    r = s.post('http://localhost:5000/api/balance',
-               json=json.loads(payload),
+    # Send the request to update the user balance
+    r = s.post('http://localhost:5000/api/voice_balance',
+               json=payload,
                headers={'content-type': 'application/json'})
 
     # TODO: Handle when the request fail
