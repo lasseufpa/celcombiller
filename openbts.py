@@ -1,16 +1,11 @@
-import sys
 import zmq
-
+import json
 
 def to_openbts(result=None, **kw):
 
-    id_ = ""
-    clid = ""
-    imsi = ""
-
     for key, value in result.items():
-        if key == "id_":
-            id_ = value
+        if key == "_id":
+            _id = value
 
         elif key == "clid":
             clid = value
@@ -18,12 +13,20 @@ def to_openbts(result=None, **kw):
         elif key == "imsi":
             imsi = value
 
-    request = '{"command":"subscribers","action":"create","fields":{"name":"' + \
-        str(id_) + '","imsi":"IMSI' + str(imsi) + \
-        '","msisdn":"' + str(clid) + '","ki":""}}'
+    request =  {
+                "command":"subscribers",
+                "action":"create",
+                "fields":{
+                        "name": str(_id),
+                        "imsi":"IMSI" + str(imsi),
+                        "msisdn":str(clid) ,
+                        "ki":""
+                        }
+                }
+
 
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
     socket.connect("tcp://127.0.0.1:45064")
 
-    socket.send(request)
+    socket.send_string(json.dumps(request),encoding='utf-8')
