@@ -241,7 +241,6 @@ def auth(*args, **kargs):
     """
     Required API request to be authenticated
     """
-    print args
     #if not current_user.is_authenticated():
     #    raise ProcessingException(description='Not authenticated', code=401)
     pass

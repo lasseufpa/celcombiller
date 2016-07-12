@@ -8,15 +8,17 @@ from flask.ext.cors import CORS
 adm_user = 'admin'
 adm_pssw = 'adm123'
 
+path_to_database = './alph.db'
+
 
 # Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
 app.config['DEBUG'] = True
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/vitor/celcombiller/alph.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'+path_to_database
 
 
 # Ability cross domain
-cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+cors = CORS(app)
 
 db = flask.ext.sqlalchemy.SQLAlchemy(app)
 

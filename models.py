@@ -81,7 +81,7 @@ class User(db.Model):
             historic_list.append(row2dict(y))
         return historic_list
 
-    def __init__(self, admin=None, name=None, cpf=None, username=None, password=None, clid=None, imsi=None, voice_balance=None, data_balance=None, address=None):
+    def __init__(self, admin, name, cpf, username, password, clid, imsi, voice_balance=None, data_balance=None, address=None):
         self.admin = admin
         self.name = name
         self.address = address
@@ -182,9 +182,9 @@ class DataBalance(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users._id'))
     date = db.Column(db.DateTime())
     value = db.Column(db.Integer)
-    user_ip = db.Column(db.String)
-    connection_ip = db.Column(db.String)
-    origin = db.Column(db.String, nullable=False)
+    user_ip = db.Column(db.Unicode)
+    connection_ip = db.Column(db.Unicode)
+    origin = db.Column(db.Unicode, nullable=False)
 
     def __init__(self, user_id, value, origin, user_ip=None, connection_ip=None, date=None):
 
