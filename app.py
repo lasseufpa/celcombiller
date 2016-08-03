@@ -55,6 +55,31 @@ def login():
             return render_template('ERROR.html')
         # json_with_names = check_time()
 
+@login_manager.request_loader
+def load_user_from_request(request):
+
+    # first, try to login using the api_key url arg
+    api_key = request.args.get('api_key')
+    if api_key:
+        user = User.query.filter_by(api_key=api_key).first()
+        if user:
+            return user
+
+    # next, try to login using Basic Auth
+    api_key = request.headers.get('Authorization')
+    if api_key:
+        api_key = api_key.replace('Basic ', '', 1)
+        try:
+            api_key = base64.b64decode(api_key)
+        except TypeError:
+            pass
+        user = User.query.filter_by(api_key=api_key).first()
+        if user:
+            return user
+
+    # finally, return None if both methods did not login the user
+    return None
+
 
 @login_manager.request_loader
 def load_user_from_request(request):
@@ -284,7 +309,7 @@ def preprocessor_check_adm(*args, **kargs):
 
 
 def preprocessors_patch(instance_id=None, data=None, **kargs):
-    user_cant_change = ["admin", "clid", "_id",
+    user_cant_change = ["level", "clid", "_id",
                         "originated_calls", "received_calls"]
     admin_cant_change = ["_id", "originated_calls", "received_calls"]
     if current_user.is_admin():
@@ -302,7 +327,6 @@ def preprocessors_patch(instance_id=None, data=None, **kargs):
 def preprocessors_check_adm_or_normal_user(instance_id=None, **kargs):
     if not (current_user.is_admin() or current_user.username == instance_id):
         raise ProcessingException(description='Forbidden', code=403)
-
 
 def new_user(*args, **kargs):
     data = request.data
@@ -331,7 +355,6 @@ def new_user(*args, **kargs):
     # return jsonify({ 'username': user.username }), 201, {'Location':
     # url_for('get_user', id = user.id, _external = True)}
 
-
 manager = flask.ext.restless.APIManager(app, flask_sqlalchemy_db=db)
 
 # Create the Flask-Restless API manager.
@@ -344,7 +367,7 @@ manager.create_api(
         'POST': [
             # auth,
             # preprocessor_check_adm
-            new_user,
+            new_user
         ],
         'GET_MANY': [
             # auth,
