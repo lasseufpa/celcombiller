@@ -104,11 +104,17 @@ class Schedules(db.Model):
 
     _id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode)
-    date = db.Column(db.DateTime)
+    day = db.Column(db.Integer)
+    value = db.Column(db.Integer)
+   # period = db.Column(db.Integer) # 1 - monthly, 2 - weekly
 
-    def __init__(self, name, date):
+    def __init__(self, name, day, value):
         self.name = name
-        self.date = date
+        self.value = value
+        if day > 28: #to solve some problems we set the last day of the month as 28
+            self.day = 28
+        else:
+            self.day = day
 
     def __repr__(self):
         return 'schedule %r' % (self.name)
@@ -122,13 +128,13 @@ class ScheduleUser(db.Model):
 
     user_id = db.Column(db.Integer, db.ForeignKey(
         'users._id'), primary_key=True)
-    group_id = db.Column(db.Integer, db.ForeignKey(
+    schedule_id = db.Column(db.Integer, db.ForeignKey(
         'schedule._id'), primary_key=True)
     count = db.Column(db.Integer, nullable=False)
 
-    def __init__(self, user_id, group_id, count):
+    def __init__(self, user_id, schedule_id, count):
         self.user_id = user_id
-        self.group_id = group_id
+        self.schedule_id = schedule_id
         self.count = count
 
     def __repr__(self):
@@ -168,7 +174,7 @@ class VoiceBalance(db.Model):
         user.voice_balance = user.voice_balance + int(value)
 
     def __repr__(self):
-        return '<from=%s date=%s duration=%s>' % (self.from_user, self.date,
+        return '<from=%s date=%s duration=%s>' % (self.from_user_id, self.date,
                                                   self.value)
 
 
@@ -218,6 +224,8 @@ class ScheduleInput(db.Model):
         self.schedule_id = schedule_id
         self.voice_balance_id = voice_balance_id
         self.data_balance_id = data_balance_id
+
+
 
     def __repr__(self):
         return 'schedule_input %r' % (self._id)

@@ -404,7 +404,7 @@ manager.create_api(
             # preprocessor_check_adm,
             # schedule_exists,
             # put_user__idin_buffer,
-            transform_to_utc
+            #transform_to_utc
         ],
         'GET_MANY': [
             auth,
