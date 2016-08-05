@@ -1,8 +1,8 @@
-from config import db, app
+from setup import db
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from sqlalchemy.orm.session import object_session
 from sqlalchemy.dialects.postgresql import ENUM
-from datetime import *
+from datetime import datetime
 
 row2dict = lambda r: {c.name: str(getattr(r, c.name))
                       for c in r.__table__.columns}
@@ -23,7 +23,8 @@ class User(db.Model):
     __tablename__ = 'users'
 
     _id = db.Column(db.Integer, primary_key=True, nullable=False)
-    level = db.Column(db.Integer, nullable=False) # 0=administrator, 1=users, 2=collaborator
+    # 0=administrator, 1=users, 2=collaborator
+    level = db.Column(db.Integer, nullable=False)
     name = db.Column(db.Unicode, nullable=False)
     address = db.Column(db.Unicode)
     cpf = db.Column(db.Integer, nullable=False,  unique=True)
@@ -40,8 +41,8 @@ class User(db.Model):
    # postalcode = db.Column(db.Integer)
 
     def is_admin(self):
-        return (level==0 if True else False)
-    
+        return (level == 0 if True else False)
+
     def is_authenticated(self):
         return True
 
@@ -105,13 +106,15 @@ class Schedules(db.Model):
     _id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.Unicode)
     day = db.Column(db.Integer)
-    value = db.Column(db.Integer)
-   # period = db.Column(db.Integer) # 1 - monthly, 2 - weekly
+    value = db.Column(db.Integer)  # the amount of credit
+    kind = db.Column(db.Integer)  # 1 - voice, 2 - data, 3 both
+    # period = db.Column(db.Integer) # 1 - monthly, 2 - weekly
 
-    def __init__(self, name, day, value):
+    def __init__(self, name, day, value, kind):
         self.name = name
         self.value = value
-        if day > 28: #to solve some problems we set the last day of the month as 28
+        self.kind = kind
+        if day > 28:  # to solve some problems we set the last day of the month as 28
             self.day = 28
         else:
             self.day = day
@@ -171,7 +174,7 @@ class VoiceBalance(db.Model):
             self.date = datetime.now()
 
         user = db.session.query(User).filter_by(_id=from_user_id).first()
-        user.voice_balance = user.voice_balance + int(value)
+        user.voice_balance += int(value)
 
     def __repr__(self):
         return '<from=%s date=%s duration=%s>' % (self.from_user_id, self.date,
@@ -205,7 +208,7 @@ class DataBalance(db.Model):
             self.date = datetime.now()
 
         user = db.session.query(User).filter_by(_id=user_id).first()
-        user.data_balance = user.data_balance + int(value)
+        user.data_balance += int(value)
 
     def __repr__(self):
         return 'data_balance %r' % (self._id)
@@ -220,12 +223,39 @@ class ScheduleInput(db.Model):
         db.Integer, db.ForeignKey('voice_balance._id'))
     data_balance_id = db.Column(db.Integer, db.ForeignKey('data_balance._id'))
 
-    def __init__(self, schedule_id, voice_balance_id, data_balance_id):
+    def __init__(self, schedule_id, user_id):
         self.schedule_id = schedule_id
-        self.voice_balance_id = voice_balance_id
-        self.data_balance_id = data_balance_id
 
+        schedule = db.session.query(
+            Schedules).filter_by(_id=schedule_id).first()
 
+        # here we create the voice and/or the data balance and save the _id
+        if schedule.kind == 1:
+            credit = VoiceBalance(from_user_id=user_id,
+                                  value=schedule.value, origin="schedule")
+            db.session.add(credit)
+            db.session.commit()
+            self.voice_balance_id = credit._id
+            self.data_balance_id = None
+
+        elif schedule.kind == 2:
+            credit = DataBalance(
+                user_id=user_id, value=schedule.value, origin="schedule")
+            db.session.add(credit)
+            db.session.commit()
+            self.voice_balance_id = None
+            self.data_balance_id = credit._id
+
+        elif schedule.kind == 3:
+            creditv = VoiceBalance(from_user_id=user_id,
+                                   value=schedule.value, origin="schedule")
+            creditd = DataBalance(user_id=user.user_id,
+                                  value=schedule.value, origin="schedule")
+            db.session.add(creditv)
+            db.session.add(creditd)
+            db.session.commit()
+            self.voice_balance_id = creditv._id
+            self.data_balance_id = creditd._id
 
     def __repr__(self):
         return 'schedule_input %r' % (self._id)

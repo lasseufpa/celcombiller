@@ -1,4 +1,4 @@
-from config import db
+from setup import db
 from models import User
 
 

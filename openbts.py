@@ -19,16 +19,16 @@ def to_openbts(result=None, **kw):
     clid = result["clid"]
     imsi = result["imsi"]
 
-    request =  {
-                "command":"subscribers",
-                "action":"create",
-                "fields":{
-                        "name": str(_id),
-                        "imsi":"IMSI" + str(imsi),
-                        "msisdn":str(clid) ,
-                        "ki":""
-                        }
-                }
+    request = {
+        "command": "subscribers",
+        "action": "create",
+        "fields": {
+            "name": str(_id),
+            "imsi": "IMSI" + str(imsi),
+                    "msisdn": str(clid),
+                    "ki": ""
+        }
+    }
 
     # for key, value in result.items():
     #     if key == "_id":
@@ -57,7 +57,7 @@ def to_openbts(result=None, **kw):
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
     socket.connect("tcp://127.0.0.1:45064")
-    socket.send_string(json.dumps(request),encoding='utf-8')
+    socket.send_string(json.dumps(request), encoding='utf-8')
 
     # set timeout
     poller = zmq.Poller()
@@ -69,5 +69,4 @@ def to_openbts(result=None, **kw):
         # raise IOError("Request to OpenBTS Timeout")
         socket.close(linger=1)
         context.term()
-
-    abort(500)
+        abort(500)
