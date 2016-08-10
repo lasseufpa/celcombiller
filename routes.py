@@ -449,3 +449,29 @@ manager.create_api(
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
 )
+
+
+manager.create_api(
+    ScheduleInput,
+    preprocessors={
+        'POST': [
+            preprocessor_check_adm,
+            # date_now
+        ],
+        'GET_MANY': [
+            auth,
+            preprocessor_check_adm
+        ],
+        'GET_SINGLE': [auth, preprocessor_check_adm],
+        'PATCH_SINGLE': [
+            auth,
+            preprocessor_check_adm
+        ],
+        'DELETE_SINGLE': [auth, preprocessor_check_adm],
+    },
+    postprocessors={
+        'POST': []
+    },
+    methods=['POST', 'GET', 'PATCH', 'DELETE'],
+    results_per_page=100,
+)

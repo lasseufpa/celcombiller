@@ -23,7 +23,7 @@ class User(db.Model):
     __tablename__ = 'users'
 
     _id = db.Column(db.Integer, primary_key=True, nullable=False)
-    # 0=administrator, 1=users, 2=collaborator
+    #levels:  0=administrator, 1=users, 2=collaborator
     level = db.Column(db.Integer, nullable=False)
     name = db.Column(db.Unicode, nullable=False)
     address = db.Column(db.Unicode)
@@ -31,7 +31,8 @@ class User(db.Model):
     username = db.Column(db.Unicode, nullable=False, unique=True)
     password = db.Column(db.Unicode, nullable=False)
     clid = db.Column(db.Unicode(9), nullable=False, unique=True)
-    imsi = db.Column(db.Integer, nullable=False, unique=True)
+    # we use imsi as string because it remove the front zeroes
+    imsi = db.Column(db.Unicode, nullable=False, unique=True)
     voice_balance = db.Column(db.Integer, nullable=False)
     data_balance = db.Column(db.Integer, nullable=False)
 
@@ -107,7 +108,7 @@ class Schedules(db.Model):
     name = db.Column(db.Unicode)
     day = db.Column(db.Integer)
     value = db.Column(db.Integer)  # the amount of credit
-    kind = db.Column(db.Integer)  # 1 - voice, 2 - data, 3 both
+    kind = db.Column(db.Integer)  # 1 - voice, 2 - data, 3 - both
     # period = db.Column(db.Integer) # 1 - monthly, 2 - weekly
 
     def __init__(self, name, day, value, kind):
@@ -168,7 +169,7 @@ class VoiceBalance(db.Model):
         self.to_user_id = to_user_id
         self.value = value
         self.origin = origin
-        if date is not None:
+        if date:
             self.date = date
         else:
             self.date = datetime.now()
@@ -249,7 +250,7 @@ class ScheduleInput(db.Model):
         elif schedule.kind == 3:
             creditv = VoiceBalance(from_user_id=user_id,
                                    value=schedule.value, origin="schedule")
-            creditd = DataBalance(user_id=user.user_id,
+            creditd = DataBalance(user_id=user_id,
                                   value=schedule.value, origin="schedule")
             db.session.add(creditv)
             db.session.add(creditd)

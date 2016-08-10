@@ -9,6 +9,8 @@ celcombiller AGI:
 import asterisk.agi
 from asterisk.agi import AGIAppError
 from config import ADM_USER, ADM_PSSW, URL, HEADERS
+import requests
+import json
 
 agi = asterisk.agi.AGI()
 
@@ -19,20 +21,16 @@ http.post(
     data={'username': ADM_USER, 'password': ADM_PSSW}
 )
 
-url = URL + '/api/person'
+url = URL + '/api/users'
 
 filters = [dict(name='clid', op='eq', val=agi.env['agi_callerid'])]
 params = dict(q=json.dumps(dict(filters=filters)))
-
-response = requests.get(url, params=params, headers=HEADERS)
-
+response = http.get(url, params=params, headers=HEADERS)
 time = response.json()['objects'][0]['voice_balance']
 
 filters = [dict(name='clid', op='eq', val=agi.env['agi_extension'])]
 params = dict(q=json.dumps(dict(filters=filters)))
-
-response = requests.get(url, params=params, headers=HEADERS)
-
+response = http.get(url, params=params, headers=HEADERS)
 receptor = response.json()['objects'][0]['imsi']
 
 try:
@@ -40,6 +38,5 @@ try:
                 (receptor, time))
 except AGIAppError:
     pass
-
 
 http.close()

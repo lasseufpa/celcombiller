@@ -10,31 +10,33 @@ from threading import Thread
 # most of the work here could have been done by trigger in the db but to keep
 # the code portable I'm doing it through the ORM
 
+firs_datetime = datetime(2016, 7, 2)
+
 
 def credit_by_schedule(day):
     # first we get the schedules of the day
     list_schedule = Schedules.query.filter_by(day=day).all()
 
-    if not list_schedule:
+    if list_schedule:
         for schedule_object in list_schedule:
             # then we get the users of that schedule
             user_list = ScheduleUser.query.\
                 filter_by(schedule_id=schedule_object._id).all()
-            if not user_list:
+            if user_list:
                 for user in user_list:
                     # And then we add credit to the user and subtract one from
                     # the field count the field count if equal or less than 0
                     # remove the line from the db
                     if user.count > 1:
+                        user.count -= 1
                         schedule_input = ScheduleInput(
-                            schedule_object._id, user.user.user_id)
+                            schedule_object._id, user.user_id)
                         db.session.add(schedule_input)
                         db.session.commit()
-                        user.count -= 1
 
                     elif user.count == 1:
                         schedule_input = ScheduleInput(
-                            schedule_object._id, user.user.user_id)
+                            schedule_object._id, user.user_id)
                         ScheduleUser.query.filter_by(
                             user_id=user.user_id,
                             schedule_id=schedule_object._id
@@ -69,9 +71,23 @@ def travel_schedules(last):
 
 def check_last():
     last_voice = VoiceBalance.query.filter_by(origin=u"schedule").order_by(
-        VoiceBalance.date.desc()).first().date
+        VoiceBalance.date.desc()).first()
+
+    # if the last voice is empty
+    if last_voice:
+        last_voice = last_voice.date
+    else:
+        last_voice = firs_datetime
+
     last_data = DataBalance.query.filter_by(origin=u"schedule").order_by(
-        DataBalance.date.desc()).first().date
+        DataBalance.date.desc()).first()
+
+    # if the last data is empty
+    if last_data:
+        last_data = last_data.date
+    else:
+        last_data = firs_datetime
+
     return max(last_voice, last_data)
 
 
@@ -91,12 +107,8 @@ def run_schedule():
         time.sleep(1)
 
 
-def test():
-    print("test")
-
-
 def start_schedule():
-    schedule.every().day.at(schedule_verification_time).do(run_schedule)
+    schedule.every().day.at(schedule_verification_time).do(schedule_routine)
     t = Thread(target=run_schedule)
     t.daemon = True
     t.start()

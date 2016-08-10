@@ -15,41 +15,17 @@ def to_openbts(result=None, **kw):
     #     elif key == "imsi":
     #         imsi = value
 
-    _id = result["_id"]
-    clid = result["clid"]
-    imsi = result["imsi"]
+    _id = str(result["_id"])
+    clid = str(result["clid"])
+    imsi = str(result["imsi"])
 
     request = {
         "command": "subscribers",
         "action": "create",
         "fields": {
-            "name": str(_id),
-            "imsi": "IMSI" + str(imsi),
-                    "msisdn": str(clid),
-                    "ki": ""
-        }
-    }
-
-    # for key, value in result.items():
-    #     if key == "_id":
-    #         _id = value
-
-    #     elif key == "clid":
-    #         clid = value
-
-    #     elif key == "imsi":
-    #         imsi = value
-    _id = result["_id"]
-    clid = result["clid"]
-    imsi = result["imsi"]
-
-    request = {
-        "command": "subscribers",
-        "action": "create",
-        "fields": {
-            "name": str(_id),
-            "imsi": "IMSI" + str(imsi),
-                    "msisdn": str(clid),
+            "name": _id,
+            "imsi": "IMSI" + imsi,
+                    "msisdn": clid,
                     "ki": ""
         }
     }
