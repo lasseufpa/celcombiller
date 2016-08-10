@@ -1,41 +1,52 @@
-from models import User, Schedules, ScheduleUser, VoiceBalance, DataBalance, ScheduleInput
+from models import Schedules, ScheduleUser,\
+    VoiceBalance, DataBalance, ScheduleInput
 from datetime import datetime, timedelta
 from setup import db
+from config import schedule_verification_time
 import schedule
 import time
+from threading import Thread
 
-# most of the work here could have been done by trigger in the db but to keep the code
-# portable I'm doing it through the ORM
+# most of the work here could have been done by trigger in the db but to keep
+# the code portable I'm doing it through the ORM
 
 
-def run_schedule(day):
+def credit_by_schedule(day):
     # first we get the schedules of the day
-    list_schedule = Schedules.query.filter_by(Schedules.day=day).all()
+    list_schedule = Schedules.query.filter_by(day=day).all()
 
     if not list_schedule:
-        for schedule in list_schedule:
+        for schedule_object in list_schedule:
             # then we get the users of that schedule
-            user_list = ScheduleUser.query.filter_by(ScheduleUser.schedule_id=schedule._id).all()
+            user_list = ScheduleUser.query.\
+                filter_by(schedule_id=schedule_object._id).all()
             if not user_list:
                 for user in user_list:
-                    # And then we add credit to the user and subtract one from the field count
-                    # the field count if equal or less than 0 que remove the line from the db
+                    # And then we add credit to the user and subtract one from
+                    # the field count the field count if equal or less than 0
+                    # remove the line from the db
                     if user.count > 1:
-                        schedule_input = ScheduleInput(schedule._id, user.user.user_id)
+                        schedule_input = ScheduleInput(
+                            schedule_object._id, user.user.user_id)
                         db.session.add(schedule_input)
                         db.session.commit()
                         user.count -= 1
 
                     elif user.count == 1:
-                        schedule_input = ScheduleInput(schedule._id, user.user.user_id)
+                        schedule_input = ScheduleInput(
+                            schedule_object._id, user.user.user_id)
                         ScheduleUser.query.filter_by(
-                            user_id=user.user_id, schedule_id=schedule._id).delete()
+                            user_id=user.user_id,
+                            schedule_id=schedule_object._id
+                        ).delete()
                         db.session.add(schedule_input)
                         db.session.commit()
 
                     else:
                         ScheduleUser.query.filter_by(
-                            user_id=user.user_id, schedule_id=schedule._id).delete()
+                            user_id=user.user_id,
+                            schedule_id=schedule_object._id
+                        ).delete()
                         db.session.commit()
 
 # I'am there is a better way to do it, but...
@@ -48,10 +59,10 @@ def run_schedule(day):
 def travel_schedules(last):
     diff = datetime.now() - last
 
-    run_schedules(last.day)
+    credit_by_schedule(last.day)
     for i in xrange(diff.days):
         last += timedelta(1)
-        run_schedule(last.day)
+        credit_by_schedule(last.day)
 
 # check the last time schedule worked
 
@@ -67,10 +78,10 @@ def check_last():
 def schedule_routine(last=None):
     # check if we have the last check salved
     if not last:
-    last = check_last()
+        last = check_last()
 
-    if (last.day != datetime.now().day) or
-        (last.month != datetime.now().month):
+    if (last.day != datetime.now().day) or\
+            (last.month != datetime.now().month):
         travel_schedules(last)
 
 
@@ -79,7 +90,13 @@ def run_schedule():
         schedule.run_pending()
         time.sleep(1)
 
-def start_schedule(time):
-    schedule.every().day.at(time).do(run_schedule)
+
+def test():
+    print("test")
+
+
+def start_schedule():
+    schedule.every().day.at(schedule_verification_time).do(run_schedule)
     t = Thread(target=run_schedule)
+    t.daemon = True
     t.start()
