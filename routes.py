@@ -1,14 +1,10 @@
-
-#import flask
-from flask import request, flash, render_template
+# -*- coding: utf-8 -*-
+from flask import request, flash, render_template, jsonify
 from flask.ext.restless import APIManager
 from setup import db, app, login_manager
 from models import User, VoiceBalance, DataBalance, Schedules, ScheduleInput, \
     ScheduleUser
 from datetime import datetime
-# from dateutil.rrule import *
-# from dateutil.parser import *
-# from dateutil.relativedelta import *
 from flask_restless import ProcessingException
 from flask.ext.login import login_user, logout_user, current_user,\
     login_required
@@ -16,8 +12,40 @@ import json
 from openbts import to_openbts
 from processors import auth, new_user, preprocessor_check_adm, preprocessors_check_adm_or_normal_user, preprocessors_patch
 
+#to return the errors
+class InvalidUsage(Exception):
+    status_code = 400
 
-@app.route('/')
+    def __init__(self, message, status_code=None, payload=None):
+        Exception.__init__(self)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv    
+
+
+@app.errorhandler(InvalidUsage)
+def handle_invalid_usage(error):
+    response = jsonify(error.to_dict())
+    response.status_code = error.status_code
+    return response
+
+
+@app.route('/test', methods=['GET'])
+@login_required
+def test():
+    # print 'ok'
+    # print json.loads({"roles":["user"],"displayName":"test test","username":"test"})
+    # return json.loads({"roles":["user"],"displayName":"test test","username":"test"})
+    return "test"
+
+
+@app.route('/',methods=['GET', 'POST'])
 def index():
     """
     Index page, just show the logged username
@@ -29,34 +57,41 @@ def index():
             return "no else"
     except Exception:
         return render_template('anonymous.html')
-
-
-@app.route('/test', methods=['GET'])
-@login_required
-def test():
-    return "rodou"
-
+    
+   
 # Login, if the user does not exist it returs a error page
-
-
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['POST'])
 def login():
-    if request.method == 'GET':
-        return render_template('login.html')
+    
+    # if request.method == 'GET':
+    #     return render_template('login.html')
+    # else:
+    #     username = request.form['username']
+    #     password = request.form['password']
+    #     registered_user = \
+    #         User.query.filter_by(username=username, password=password).first()
+    #     if registered_user is None:
+    #         flash('Username or Password is invalid', 'error')
+    #         return render_template('ERROR.html')
+    #     if login_user(registered_user):
+    #         return "Hello, cross-origin-world! " + current_user.name
+    #     else:
+    #         flash('Flask Login error', 'error')
+    #         return render_template('ERROR.html')
+    
+    level = ["admin","user","colla"]
+    data =  json.loads(request.data)
+    user = User.query.filter_by(username = data['username'], password =  data["password"]).first()
+    if user:
+        login_user(user)
+        return json.dumps({"roles":[level[user.level]],
+                            "displayName":user.name,
+                            "username":user.username
+                            })
     else:
-        username = request.form['username']
-        password = request.form['password']
-        registered_user = \
-            User.query.filter_by(username=username, password=password).first()
-        if registered_user is None:
-            flash('Username or Password is invalid', 'error')
-            return render_template('ERROR.html')
-        if login_user(registered_user):
-            return "Hello, cross-origin-world! " + current_user.name
-        else:
-            flash('Flask Login error', 'error')
-            return render_template('ERROR.html')
-        # json_with_names = check_time()
+        raise InvalidUsage(u'Usuário ou Senha invalido', status_code=404)
+
+
 
 
 @login_manager.request_loader
@@ -475,3 +510,4 @@ manager.create_api(
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
 )
+
