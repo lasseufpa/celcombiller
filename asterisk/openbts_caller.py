@@ -8,12 +8,11 @@ celcombiller AGI:
 # pylint: disable=C0103
 import asterisk.agi
 from asterisk.agi import AGIAppError
-from config import ADM_USER, ADM_PSSW, URL, HEADERS
+from config import ADM_USER, ADM_PSSW, URL, HEADERS, RING_TIME
 import requests
 import json
 
 agi = asterisk.agi.AGI()
-
 http = requests.Session()
 
 http.post(
@@ -34,8 +33,8 @@ response = http.get(url, params=params, headers=HEADERS)
 receptor = response.json()['objects'][0]['imsi']
 
 try:
-    agi.appexec('DIAL', 'SIP/IMSI%s@127.0.0.1:5062,40,S(%d)' %
-                (receptor, time))
+    agi.appexec('DIAL', 'SIP/IMSI%s@127.0.0.1:5062,%d,S(%d)' %
+                (receptor, RING_TIME, time))
 except AGIAppError:
     pass
 
