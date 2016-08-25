@@ -10,9 +10,12 @@ from flask.ext.login import login_user, logout_user, current_user,\
     login_required
 import json
 from openbts import to_openbts
-from processors import auth, new_user, preprocessor_check_adm, preprocessors_check_adm_or_normal_user, preprocessors_patch
+from processors import auth, new_user, preprocessor_check_adm, preprocessors_check_adm_or_normal_user,\
+    preprocessors_patch, new_scheduleuser
 
-#to return the errors
+# to return the errors
+
+
 class InvalidUsage(Exception):
     status_code = 400
 
@@ -41,11 +44,12 @@ def handle_invalid_usage(error):
 def test():
     # print 'ok'
     # print json.loads({"roles":["user"],"displayName":"test test","username":"test"})
-    # return json.loads({"roles":["user"],"displayName":"test test","username":"test"})
+    # return json.loads({"roles":["user"],"displayName":"test
+    # test","username":"test"})
     return "test"
 
 
-@app.route('/',methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     """
     Index page, just show the logged username
@@ -78,20 +82,19 @@ def login():
     #     else:
     #         flash('Flask Login error', 'error')
     #         return render_template('ERROR.html')
-    
-    level = ["admin","user","colla"]
-    data =  json.loads(request.data)
-    user = User.query.filter_by(username = data['username'], password =  data["password"]).first()
+
+    level = ["admin", "user", "coll"]
+    data = json.loads(request.data)
+    user = User.query.filter_by(
+        username=data['username'], password=data["password"]).first()
     if user:
         login_user(user)
-        return json.dumps({"roles":[level[user.level]],
-                            "displayName":user.name,
-                            "username":user.username
-                            })
+        return json.dumps({"roles": [level[user.level]],
+                           "displayName": user.name,
+                           "username": user.username
+                           })
     else:
         raise InvalidUsage(u'Usuário ou Senha invalido', status_code=404)
-
-
 
 
 @login_manager.request_loader
@@ -414,6 +417,7 @@ manager.create_api(
     preprocessors={
         'POST': [
             preprocessor_check_adm,
+            new_scheduleuser
             # date_now
         ],
         'GET_MANY': [
@@ -510,4 +514,3 @@ manager.create_api(
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
 )
-

@@ -115,7 +115,8 @@ class Schedules(db.Model):
         self.name = name
         self.value = value
         self.kind = kind
-        if day > 28:  # to solve some problems we set the last day of the month as 28
+
+        if int(day) > 28:  # to solve some problems we set the last day of the month as 28
             self.day = 28
         else:
             self.day = day

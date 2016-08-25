@@ -1,7 +1,18 @@
 import json
-import socket;
+import socket
 from flask import request, abort
-from models import User
+from models import User, ScheduleUser
+
+def make_error(status_code, sub_code, message, action):
+    response = jsonify({
+        'status': status_code,
+        'sub_code': sub_code,
+        'message': message,
+        'action': action
+    })
+    response.status_code = status_code
+    return response
+
 
 def auth(*args, **kargs):
     """
@@ -38,12 +49,13 @@ def preprocessors_check_adm_or_normal_user(instance_id=None, **kargs):
     if not (current_user.is_admin() or current_user.username == instance_id):
         raise ProcessingException(description='Forbidden', code=403)
 
+
 def new_user(*args, **kargs):
 
-    #check if we have connection with nodemanager
+    # check if we have connection with nodemanager
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if sock.connect_ex(('127.0.0.1',45064)):
-       abort(500) 
+    if sock.connect_ex(('127.0.0.1', 45064)):
+        abort(500)
 
     data = request.data
     request_body = json.loads(data)
@@ -70,3 +82,14 @@ def new_user(*args, **kargs):
     # db.session.commit()
     # return jsonify({ 'username': user.username }), 201, {'Location':
     # url_for('get_user', id = user.id, _external = True)}
+
+def new_scheduleuser(*args, **kargs):
+    #check if the user is already in the group
+    data = request.data
+    request_body = json.loads(data)
+
+    user_id = request_body['user_id']
+    schedule_id = request_body['schedule_id']
+
+    if ScheduleUser.query.filter_by(user_id=user_id,schedule_id=schedule_id).first() is not None:
+        abort(409)  # existing user
