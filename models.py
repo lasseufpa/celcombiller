@@ -130,11 +130,12 @@ class Schedules(db.Model):
 class ScheduleUser(db.Model):
 
     __tablename__ = 'schedule_user'
+    _id = db.Column(db.Integer, primary_key=True)
 
     user_id = db.Column(db.Integer, db.ForeignKey(
-        'users._id'), primary_key=True)
+        'users._id'))
     schedule_id = db.Column(db.Integer, db.ForeignKey(
-        'schedule._id'), primary_key=True)
+        'schedule._id'))
     count = db.Column(db.Integer, nullable=False)
 
     def __init__(self, user_id, schedule_id, count):
@@ -152,7 +153,7 @@ class VoiceBalance(db.Model):
     """
     __tablename__ = 'voice_balance'
 
-    _id = db.Column(db.Integer, db.Sequence('cdr_id_seq'), primary_key=True)
+    _id = db.Column(db.Integer, primary_key=True)
     from_user_id = db.Column(
         db.Integer, db.ForeignKey('users._id'), nullable=False)
     to_user_id = db.Column(db.Integer, db.ForeignKey('users._id'))

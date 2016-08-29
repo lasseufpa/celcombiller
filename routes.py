@@ -429,6 +429,10 @@ manager.create_api(
             auth,
             preprocessor_check_adm
         ],
+        'PATCH_MANY': [
+            auth,
+            preprocessor_check_adm
+        ],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
@@ -436,6 +440,7 @@ manager.create_api(
     },
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
+    allow_patch_many=True
 )
 
 
