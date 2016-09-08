@@ -11,7 +11,7 @@ from flask.ext.login import login_user, logout_user, current_user,\
 import json
 from openbts import to_openbts
 from processors import auth, new_user, preprocessor_check_adm, preprocessors_check_adm_or_normal_user,\
-    preprocessors_patch, new_scheduleuser
+    preprocessors_patch, new_scheduleuser, schedule_exists
 
 # to return the errors
 
@@ -91,7 +91,8 @@ def login():
         login_user(user)
         return json.dumps({"roles": [level[user.level]],
                            "displayName": user.name,
-                           "username": user.username
+                           "username": user.username,
+                           "id":user._id
                            })
     else:
         raise InvalidUsage(u'Usuário ou Senha invalido', status_code=404)
@@ -197,17 +198,7 @@ def check_voice_balance(*args, **kargs):
 #         else:
 #             return json_need_update
 
-# Check if the user has a schedule
-def schedule_exists(data=None, **kargs):
-    data = request.data
-    request_body = json.loads(data)
-    schedule = Schedules.query.\
-        filter_by(name=request_body['name']).first()
-    if schedule is not None:
-        raise ProcessingException(
-            description='A schedule with this name already exists', code=400)
-    else:
-        pass
+
 
 # Let's put onlt one user at time in the schedule
 # def put_user__idin_buffer(*args, **kargs):
@@ -338,7 +329,7 @@ def checkadm():
 manager = APIManager(app, flask_sqlalchemy_db=db)
 
 # Create the Flask-Restless API manager.
-# Create API endpoints, which will be available at /pi/<tablename> by
+# Create API endpoints, which will be available at /api/<tablename> by
 # default. Allowed HTTP methods can be specified as well.
 
 manager.create_api(

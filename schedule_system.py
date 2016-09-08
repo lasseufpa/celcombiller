@@ -2,15 +2,14 @@ from models import Schedules, ScheduleUser,\
     VoiceBalance, DataBalance, ScheduleInput
 from datetime import datetime, timedelta
 from setup import db
-from config import schedule_verification_time
+from config import schedule_verification_time, firs_datetime
 import schedule
 import time
 from threading import Thread
 
 # most of the work here could have been done by trigger in the db but to keep
 # the code portable I'm doing it through the ORM
-
-firs_datetime = datetime(2016, 7, 2)
+last_verification = None
 
 
 def credit_by_schedule(day):
@@ -91,10 +90,14 @@ def check_last():
     return max(last_voice, last_data)
 
 
-def schedule_routine(last=None):
+def schedule_routine():
     # check if we have the last check salved
-    if not last:
+    global last_verification
+    if last_verification:
+        last = last_verification
+    else:
         last = check_last()
+        last_verification = last
 
     if (last.day != datetime.now().day) or\
             (last.month != datetime.now().month):

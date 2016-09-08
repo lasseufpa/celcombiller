@@ -1,7 +1,9 @@
 import json
 import socket
 from flask import request, abort
-from models import User, ScheduleUser
+from models import User, ScheduleUser, Schedules
+from config import node_manager_address, node_manager_port
+from flask_restless import ProcessingException
 
 def make_error(status_code, sub_code, message, action):
     response = jsonify({
@@ -54,8 +56,8 @@ def new_user(*args, **kargs):
 
     # check if we have connection with nodemanager
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if sock.connect_ex(('127.0.0.1', 45064)):
-        abort(500)
+    if sock.connect_ex((node_manager_address, int(node_manager_port))):
+        abort(500,"Conexao com o NodeManager Falhou")
 
     data = request.data
     request_body = json.loads(data)
@@ -66,7 +68,7 @@ def new_user(*args, **kargs):
     imsi = request_body['imsi']
 
     if username is None or password is None:
-        abort(409)  # missing arguments
+        abort(400)  # missing arguments
     if User.query.filter_by(username=username).first() is not None:
         abort(409)  # existing user
     if User.query.filter_by(cpf=cpf).first() is not None:
@@ -93,3 +95,15 @@ def new_scheduleuser(*args, **kargs):
 
     if ScheduleUser.query.filter_by(user_id=user_id,schedule_id=schedule_id).first() is not None:
         abort(409)  # existing user
+
+# Check if the user has a schedule
+def schedule_exists(data=None, **kargs):
+    data = request.data
+    request_body = json.loads(data)
+    schedule = Schedules.query.\
+        filter_by(name=request_body['name']).first()
+    if schedule is not None:
+        raise ProcessingException(
+            description='A schedule with this name already exists', code=400)
+    else:
+        pass

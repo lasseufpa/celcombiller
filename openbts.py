@@ -1,5 +1,6 @@
 import zmq
 import json
+from config import node_manager_address, node_manager_port
 from flask import abort
 
 
@@ -32,7 +33,7 @@ def to_openbts(result=None, **kw):
 
     context = zmq.Context()
     socket = context.socket(zmq.REQ)
-    socket.connect("tcp://127.0.0.1:45064")
+    socket.connect("tcp://"+node_manager_address+':'+node_manager_port)
     socket.send_string(json.dumps(request), encoding='utf-8')
 
     # set timeout
@@ -45,4 +46,4 @@ def to_openbts(result=None, **kw):
         # raise IOError("Request to OpenBTS Timeout")
         socket.close(linger=1)
         context.term()
-        abort(500)
+        abort(500,"Conexao com o NodeManager Falhou")

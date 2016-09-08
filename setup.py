@@ -3,11 +3,11 @@ from flask.ext.sqlalchemy import SQLAlchemy
 import flask.ext.restless
 from flask.ext.login import LoginManager
 from flask.ext.cors import CORS
-from config import path_to_database, secret_key
+from config import path_to_database, secret_key, debug
 
 # Create the Flask application and the Flask-SQLAlchemy object.
 app = flask.Flask(__name__)
-app.config['DEBUG'] = True
+app.config['DEBUG'] = debug
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + path_to_database
 
 
