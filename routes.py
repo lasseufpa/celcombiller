@@ -11,7 +11,7 @@ from flask.ext.login import login_user, logout_user, current_user,\
 import json
 from openbts import to_openbts
 from processors import auth, new_user, preprocessor_check_adm, preprocessors_check_adm_or_normal_user,\
-    preprocessors_patch, new_scheduleuser, schedule_exists
+    preprocessors_patch, new_scheduleuser, schedule_exists, patch_user
 
 # to return the errors
 
@@ -349,11 +349,15 @@ manager.create_api(
             # preprocessors_check_adm_or_normal_user
         ],
         'PATCH_SINGLE': [
-            auth,
-            preprocessors_check_adm_or_normal_user,
-            preprocessors_patch
+            patch_user,
+            #auth,
+        #    preprocessors_check_adm_or_normal_user,
+        #    preprocessors_patch
         ],
-        'PATCH_MANY': [auth, preprocessor_check_adm],
+        'PATCH_MANY': [
+            #auth, preprocessor_check_adm
+            #auth,
+        ],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={

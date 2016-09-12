@@ -51,6 +51,11 @@ def preprocessors_check_adm_or_normal_user(instance_id=None, **kargs):
     if not (current_user.is_admin() or current_user.username == instance_id):
         raise ProcessingException(description='Forbidden', code=403)
 
+def patch_user(instance_id=None, data=None, **kargs):
+    data[data["field"]] = data["value"]
+    del data["field"]
+    del data["value"]
+
 
 def new_user(*args, **kargs):
 
