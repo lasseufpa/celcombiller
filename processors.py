@@ -52,10 +52,13 @@ def preprocessors_check_adm_or_normal_user(instance_id=None, **kargs):
         raise ProcessingException(description='Forbidden', code=403)
 
 def patch_user(instance_id=None, data=None, **kargs):
-    data[data["field"]] = data["value"]
-    del data["field"]
-    del data["value"]
-
+    # print data
+    for i in data:
+        # it only works because we wont recive a bool
+        if data["values"][i]: data[data["fields"][i]] = data["values"][i]
+    del data["fields"]
+    del data["values"]
+    print data
 
 def new_user(*args, **kargs):
 
