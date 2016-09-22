@@ -1,5 +1,5 @@
 from datetime import datetime
-
+# TODO: Upercase the constants
 debug = True
 
 port_to_run = 5000

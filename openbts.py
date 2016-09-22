@@ -46,4 +46,4 @@ def to_openbts(result=None, **kw):
         # raise IOError("Request to OpenBTS Timeout")
         socket.close(linger=1)
         context.term()
-        abort(500,"Conexao com o NodeManager Falhou")
+        abort(500, "Conexao com o NodeManager Falhou")

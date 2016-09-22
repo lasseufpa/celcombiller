@@ -4,8 +4,8 @@ from sqlalchemy.orm.session import object_session
 from sqlalchemy.dialects.postgresql import ENUM
 from datetime import datetime
 
-row2dict = lambda r: {c.name: str(getattr(r, c.name))
-                      for c in r.__table__.columns}
+# row2dict = lambda r: {c.name: str(getattr(r, c.name))
+#                      for c in r.__table__.columns}
 
 # Create your Flask-SQLALchemy models as usual but with the following two
 # (reasonable) restrictions:
@@ -23,7 +23,7 @@ class User(db.Model):
     __tablename__ = 'users'
 
     _id = db.Column(db.Integer, primary_key=True, nullable=False)
-    #levels:  0=administrator, 1=users, 2=collaborator
+    # levels:  0=administrator, 1=users, 2=collaborator
     level = db.Column(db.Integer, nullable=False)
     name = db.Column(db.Unicode, nullable=False)
     address = db.Column(db.Unicode)
@@ -36,10 +36,10 @@ class User(db.Model):
     voice_balance = db.Column(db.Integer, nullable=False)
     data_balance = db.Column(db.Integer, nullable=False)
 
-   # ki = db.Column(db.Integer)
-   # city = db.Column(db.Unicode)
-   # state = db.Column(db.Unicode)
-   # postalcode = db.Column(db.Integer)
+    # ki = db.Column(db.Integer)
+    # city = db.Column(db.Unicode)
+    # state = db.Column(db.Unicode)
+    # postalcode = db.Column(db.Integer)
 
     def is_admin(self):
         return (level == 0 if True else False)
@@ -82,7 +82,8 @@ class User(db.Model):
             historic_list.append(row2dict(y))
         return historic_list
 
-    def __init__(self, level, name, cpf, username, password, clid, imsi, voice_balance=None, data_balance=None, address=None):
+    def __init__(self, level, name, cpf, username, password, clid, imsi,
+                 voice_balance=None, data_balance=None, address=None):
         self.level = level
         self.name = name
         self.address = address
@@ -115,8 +116,9 @@ class Schedules(db.Model):
         self.name = name
         self.value = value
         self.kind = kind
-
-        if int(day) > 28:  # to solve some problems we set the last day of the month as 28
+        # to solve some problems we set the last day of the month as 28
+        # for example the schedules of day 30 won't run in february
+        if int(day) > 28:
             self.day = 28
         else:
             self.day = day
@@ -166,7 +168,8 @@ class VoiceBalance(db.Model):
     # to_user = db.relationship('User', backref='received_calls',
     #                           foreign_keys=to_user_id)
 
-    def __init__(self, from_user_id, value, origin, to_user_id=None, date=None):
+    def __init__(self, from_user_id, value, origin,
+                 to_user_id=None, date=None):
         self.from_user_id = from_user_id
         self.to_user_id = to_user_id
         self.value = value
@@ -197,7 +200,8 @@ class DataBalance(db.Model):
     connection_ip = db.Column(db.Unicode)
     origin = db.Column(db.Unicode, nullable=False)
 
-    def __init__(self, user_id, value, origin, user_ip=None, connection_ip=None, date=None):
+    def __init__(self, user_id, value, origin, user_ip=None,
+                 connection_ip=None, date=None):
 
         self.user_id = user_id
         self.value = value

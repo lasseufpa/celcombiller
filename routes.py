@@ -10,8 +10,9 @@ from flask.ext.login import login_user, logout_user, current_user,\
     login_required
 import json
 from openbts import to_openbts
-from processors import auth, new_user, preprocessor_check_adm, preprocessors_check_adm_or_normal_user,\
-    preprocessors_patch, new_scheduleuser, schedule_exists, patch_user
+from processors import auth, new_user, preprocessor_check_adm,\
+    preprocessors_check_adm_or_normal_user, preprocessors_patch,\
+    new_scheduleuser, schedule_exists, patch_user
 
 # to return the errors
 
@@ -29,7 +30,7 @@ class InvalidUsage(Exception):
     def to_dict(self):
         rv = dict(self.payload or ())
         rv['message'] = self.message
-        return rv    
+        return rv
 
 
 @app.errorhandler(InvalidUsage)
@@ -43,7 +44,9 @@ def handle_invalid_usage(error):
 @login_required
 def test():
     # print 'ok'
-    # print json.loads({"roles":["user"],"displayName":"test test","username":"test"})
+    # print json.loads({"roles": ["user"],
+    #                  "displayName": "test test",
+    #                  "username": "test"})
     # return json.loads({"roles":["user"],"displayName":"test
     # test","username":"test"})
     return "test"
@@ -61,12 +64,12 @@ def index():
             return "no else"
     except Exception:
         return render_template('anonymous.html')
-    
-   
+
+
 # Login, if the user does not exist it returs a error page
 @app.route('/login', methods=['POST'])
 def login():
-    
+
     # if request.method == 'GET':
     #     return render_template('login.html')
     # else:
@@ -92,7 +95,7 @@ def login():
         return json.dumps({"roles": [level[user.level]],
                            "displayName": user.name,
                            "username": user.username,
-                           "id":user._id
+                           "id": user._id
                            })
     else:
         raise InvalidUsage(u'Usuário ou Senha invalido', status_code=404)
@@ -197,7 +200,6 @@ def check_voice_balance(*args, **kargs):
 #             return None
 #         else:
 #             return json_need_update
-
 
 
 # Let's put onlt one user at time in the schedule
@@ -350,13 +352,13 @@ manager.create_api(
         ],
         'PATCH_SINGLE': [
             patch_user,
-            #auth,
-        #    preprocessors_check_adm_or_normal_user,
-        #    preprocessors_patch
+            # auth,
+            # preprocessors_check_adm_or_normal_user,
+            # preprocessors_patch
         ],
         'PATCH_MANY': [
-            #auth, preprocessor_check_adm
-            #auth,
+            # auth, preprocessor_check_adm
+            # auth,
         ],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
