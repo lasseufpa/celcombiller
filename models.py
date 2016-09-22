@@ -4,8 +4,8 @@ from sqlalchemy.orm.session import object_session
 from sqlalchemy.dialects.postgresql import ENUM
 from datetime import datetime
 
-# row2dict = lambda r: {c.name: str(getattr(r, c.name))
-#                      for c in r.__table__.columns}
+row2dict = lambda r: {c.name: str(getattr(r, c.name))
+                      for c in r.__table__.columns}
 
 # Create your Flask-SQLALchemy models as usual but with the following two
 # (reasonable) restrictions:
