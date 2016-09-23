@@ -352,6 +352,7 @@ manager.create_api(
         ],
         'PATCH_SINGLE': [
             patch_user,
+            patch_user_openbts
             # auth,
             # preprocessors_check_adm_or_normal_user,
             # preprocessors_patch
@@ -367,8 +368,7 @@ manager.create_api(
             new_user_openbts
         ],
         'PATCH_SINGLE': [
-            patch_user_openbts
-        ]
+        ],
     },
     exclude_columns=[
         'password'

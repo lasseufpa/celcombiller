@@ -2,7 +2,7 @@ from models import Schedules, ScheduleUser,\
     VoiceBalance, DataBalance, ScheduleInput
 from datetime import datetime, timedelta
 from setup import db
-from config import schedule_verification_time, firs_datetime
+from config import SCHEDULE_VERIFICATION_TIME, FIRS_DATETIME
 import schedule
 import time
 from threading import Thread
@@ -76,7 +76,7 @@ def check_last():
     if last_voice:
         last_voice = last_voice.date
     else:
-        last_voice = firs_datetime
+        last_voice = FIRS_DATETIME
 
     last_data = DataBalance.query.filter_by(origin=u"schedule").order_by(
         DataBalance.date.desc()).first()
@@ -85,7 +85,7 @@ def check_last():
     if last_data:
         last_data = last_data.date
     else:
-        last_data = firs_datetime
+        last_data = FIRS_DATETIME
 
     return max(last_voice, last_data)
 
@@ -111,7 +111,7 @@ def run_schedule():
 
 
 def start_schedule():
-    schedule.every().day.at(schedule_verification_time).do(schedule_routine)
+    schedule.every().day.at(SCHEDULE_VERIFICATION_TIME).do(schedule_routine)
     t = Thread(target=run_schedule)
     t.daemon = True
     t.start()

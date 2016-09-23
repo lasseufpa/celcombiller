@@ -1,17 +1,17 @@
 from datetime import datetime
-# TODO: Upercase the constants
-debug = True
 
-port_to_run = 5000
+DEBUG = True
 
-schedule_verification_time = "00:30"
+PORT_TO_RUN = 5000
+
+SCHEDULE_VERIFICATION_TIME = "00:30"
 
 # In a new system when the schedule should start?
-firs_datetime = datetime(2016, 7, 2)
+FIRS_DATETIME = datetime(2016, 7, 2)
 
-path_to_database = './alph.db'
+PATH_TO_DATABASE = './alph.db'
 
-secret_key = 'abrakadabra'
+SECRET_KEY = 'abrakadabra'
 
-node_manager_address = '127.0.0.1'
-node_manager_port = '45064'
+NODE_MANAGER_ADDRESS = '127.0.0.1'
+NODE_MANAGER_PORT = '45064'
