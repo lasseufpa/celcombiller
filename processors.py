@@ -6,6 +6,11 @@ from config import node_manager_address, node_manager_port
 from flask_restless import ProcessingException
 
 
+def pos_error_test(result=None, **kw):
+    test = [1, 2, 3]
+    print test[7]
+
+
 def make_error(status_code, sub_code, message, action):
     response = jsonify({
         'status': status_code,
@@ -15,6 +20,13 @@ def make_error(status_code, sub_code, message, action):
     })
     response.status_code = status_code
     return response
+
+
+def check_node_manager_connection():
+    # check if we have connection with nodemanager
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if sock.connect_ex((node_manager_address, int(node_manager_port))):
+        abort(500, "Conexao com o NodeManager Falhou")
 
 
 def auth(*args, **kargs):
@@ -65,11 +77,7 @@ def patch_user(instance_id=None, data=None, **kargs):
 
 
 def new_user(*args, **kargs):
-
-    # check if we have connection with nodemanager
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if sock.connect_ex((node_manager_address, int(node_manager_port))):
-        abort(500, "Conexao com o NodeManager Falhou")
+    # check_node_manager_connection()
     data = request.data
     request_body = json.loads(data)
     username = request_body['username']

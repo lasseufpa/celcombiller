@@ -62,25 +62,25 @@ class User(db.Model):
     def DataBalance(self):
         return self.data_balance
 
-    @hybrid_property
-    def VoiceBalanceHistoric(self):
-        # TODO: Maybe it should use object_session
-        balances = VoiceBalance.query.order_by(
-            VoiceBalance._id.desc()).filter_by(from_user_id=self._id).limit(10)
-        historic_list = []
-        for y in balances:
-            historic_list.append(row2dict(y))
-        return historic_list
-
-    @hybrid_property
-    def DataBalanceHistoric(self):
-        # TODO: Maybe it should use object_session
-        balances = DataBalance.query.order_by(
-            DataBalance._id.desc()).filter_by(user_id=self._id).limit(10)
-        historic_list = []
-        for y in balances:
-            historic_list.append(row2dict(y))
-        return historic_list
+    # @hybrid_property
+    # def VoiceBalanceHistoric(self):
+    #     # TODO: Maybe it should use object_session
+    #     balances = VoiceBalance.query.order_by(
+    #         VoiceBalance._id.desc()).filter_by(from_user_id=self._id).limit(10)
+    #     historic_list = []
+    #     for y in balances:
+    #         historic_list.append(row2dict(y))
+    #     return historic_list
+    #
+    # @hybrid_property
+    # def DataBalanceHistoric(self):
+    #     # TODO: Maybe it should use object_session
+    #     balances = DataBalance.query.order_by(
+    #         DataBalance._id.desc()).filter_by(user_id=self._id).limit(10)
+    #     historic_list = []
+    #     for y in balances:
+    #         historic_list.append(row2dict(y))
+    #     return historic_list
 
     def __init__(self, level, name, cpf, username, password, clid, imsi,
                  voice_balance=None, data_balance=None, address=None):

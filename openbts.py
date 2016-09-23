@@ -4,17 +4,7 @@ from config import node_manager_address, node_manager_port
 from flask import abort
 
 
-def to_openbts(result=None, **kw):
-
-    # for key, value in result.items():
-    #     if key == "_id":
-    #         _id = value
-
-    #     elif key == "clid":
-    #         clid = value
-
-    #     elif key == "imsi":
-    #         imsi = value
+def new_user_openbts(result=None, **kw):
 
     _id = str(result["_id"])
     clid = str(result["clid"])
@@ -47,3 +37,7 @@ def to_openbts(result=None, **kw):
         socket.close(linger=1)
         context.term()
         abort(500, "Conexao com o NodeManager Falhou")
+
+
+def patch_user_openbts(result=None, **kw):
+    print result

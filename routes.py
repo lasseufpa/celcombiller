@@ -9,10 +9,10 @@ from flask_restless import ProcessingException
 from flask.ext.login import login_user, logout_user, current_user,\
     login_required
 import json
-from openbts import to_openbts
+from openbts import new_user_openbts, patch_user_openbts
 from processors import auth, new_user, preprocessor_check_adm,\
     preprocessors_check_adm_or_normal_user, preprocessors_patch,\
-    new_scheduleuser, schedule_exists, patch_user
+    new_scheduleuser, schedule_exists, patch_user, pos_error_test
 
 # to return the errors
 
@@ -364,7 +364,10 @@ manager.create_api(
     },
     postprocessors={
         'POST': [
-            to_openbts
+            new_user_openbts
+        ],
+        'PATCH_SINGLE': [
+            patch_user_openbts
         ]
     },
     exclude_columns=[
