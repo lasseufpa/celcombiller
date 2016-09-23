@@ -9,10 +9,14 @@ from flask_restless import ProcessingException
 from flask.ext.login import login_user, logout_user, current_user,\
     login_required
 import json
-from openbts import to_openbts
-from processors import auth, new_user, preprocessor_check_adm, preprocessors_check_adm_or_normal_user, preprocessors_patch
+from openbts import new_user_openbts, patch_user_openbts
+from processors import auth, new_user, preprocessor_check_adm,\
+    preprocessors_check_adm_or_normal_user, preprocessors_patch,\
+    new_scheduleuser, schedule_exists, patch_user, pos_error_test
 
-#to return the errors
+# to return the errors
+
+
 class InvalidUsage(Exception):
     status_code = 400
 
@@ -26,7 +30,7 @@ class InvalidUsage(Exception):
     def to_dict(self):
         rv = dict(self.payload or ())
         rv['message'] = self.message
-        return rv    
+        return rv
 
 
 @app.errorhandler(InvalidUsage)
@@ -40,12 +44,15 @@ def handle_invalid_usage(error):
 @login_required
 def test():
     # print 'ok'
-    # print json.loads({"roles":["user"],"displayName":"test test","username":"test"})
-    # return json.loads({"roles":["user"],"displayName":"test test","username":"test"})
+    # print json.loads({"roles": ["user"],
+    #                  "displayName": "test test",
+    #                  "username": "test"})
+    # return json.loads({"roles":["user"],"displayName":"test
+    # test","username":"test"})
     return "test"
 
 
-@app.route('/',methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     """
     Index page, just show the logged username
@@ -57,12 +64,12 @@ def index():
             return "no else"
     except Exception:
         return render_template('anonymous.html')
-    
-   
+
+
 # Login, if the user does not exist it returs a error page
 @app.route('/login', methods=['POST'])
 def login():
-    
+
     # if request.method == 'GET':
     #     return render_template('login.html')
     # else:
@@ -78,20 +85,20 @@ def login():
     #     else:
     #         flash('Flask Login error', 'error')
     #         return render_template('ERROR.html')
-    
-    level = ["admin","user","colla"]
-    data =  json.loads(request.data)
-    user = User.query.filter_by(username = data['username'], password =  data["password"]).first()
+
+    level = ["admin", "user", "coll"]
+    data = json.loads(request.data)
+    user = User.query.filter_by(
+        username=data['username'], password=data["password"]).first()
     if user:
         login_user(user)
-        return json.dumps({"roles":[level[user.level]],
-                            "displayName":user.name,
-                            "username":user.username
-                            })
+        return json.dumps({"roles": [level[user.level]],
+                           "displayName": user.name,
+                           "username": user.username,
+                           "id": user._id
+                           })
     else:
         raise InvalidUsage(u'Usuário ou Senha invalido', status_code=404)
-
-
 
 
 @login_manager.request_loader
@@ -194,17 +201,6 @@ def check_voice_balance(*args, **kargs):
 #         else:
 #             return json_need_update
 
-# Check if the user has a schedule
-def schedule_exists(data=None, **kargs):
-    data = request.data
-    request_body = json.loads(data)
-    schedule = Schedules.query.\
-        filter_by(name=request_body['name']).first()
-    if schedule is not None:
-        raise ProcessingException(
-            description='A schedule with this name already exists', code=400)
-    else:
-        pass
 
 # Let's put onlt one user at time in the schedule
 # def put_user__idin_buffer(*args, **kargs):
@@ -335,7 +331,7 @@ def checkadm():
 manager = APIManager(app, flask_sqlalchemy_db=db)
 
 # Create the Flask-Restless API manager.
-# Create API endpoints, which will be available at /pi/<tablename> by
+# Create API endpoints, which will be available at /api/<tablename> by
 # default. Allowed HTTP methods can be specified as well.
 
 manager.create_api(
@@ -355,17 +351,24 @@ manager.create_api(
             # preprocessors_check_adm_or_normal_user
         ],
         'PATCH_SINGLE': [
-            auth,
-            preprocessors_check_adm_or_normal_user,
-            preprocessors_patch
+            patch_user,
+            patch_user_openbts
+            # auth,
+            # preprocessors_check_adm_or_normal_user,
+            # preprocessors_patch
         ],
-        'PATCH_MANY': [auth, preprocessor_check_adm],
+        'PATCH_MANY': [
+            # auth, preprocessor_check_adm
+            # auth,
+        ],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
         'POST': [
-            to_openbts
-        ]
+            new_user_openbts
+        ],
+        'PATCH_SINGLE': [
+        ],
     },
     exclude_columns=[
         'password'
@@ -414,6 +417,7 @@ manager.create_api(
     preprocessors={
         'POST': [
             preprocessor_check_adm,
+            new_scheduleuser
             # date_now
         ],
         'GET_MANY': [
@@ -425,6 +429,10 @@ manager.create_api(
             auth,
             preprocessor_check_adm
         ],
+        'PATCH_MANY': [
+            auth,
+            preprocessor_check_adm
+        ],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
@@ -432,6 +440,7 @@ manager.create_api(
     },
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
+    allow_patch_many=True
 )
 
 
@@ -510,4 +519,3 @@ manager.create_api(
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
 )
-

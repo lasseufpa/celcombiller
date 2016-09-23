@@ -1,7 +1,26 @@
 import json
-import socket;
 from flask import request, abort
-from models import User
+from models import User, ScheduleUser, Schedules
+from config import NODE_MANAGER_ADDRESS, NODE_MANAGER_PORT
+from flask_restless import ProcessingException
+from openbts import check_node_manager_connection
+
+
+def pos_error_test(result=None, **kw):
+    test = [1, 2, 3]
+    print test[7]
+
+
+def make_error(status_code, sub_code, message, action):
+    response = jsonify({
+        'status': status_code,
+        'sub_code': sub_code,
+        'message': message,
+        'action': action
+    })
+    response.status_code = status_code
+    return response
+
 
 def auth(*args, **kargs):
     """
@@ -13,8 +32,8 @@ def auth(*args, **kargs):
 
 
 def preprocessor_check_adm(*args, **kargs):
-   # if not current_user.is_admin():
-   #     raise ProcessingException(description='Forbidden', code=403)
+    # if not current_user.is_admin():
+    #     raise ProcessingException(description='Forbidden', code=403)
     pass
 
 
@@ -38,13 +57,19 @@ def preprocessors_check_adm_or_normal_user(instance_id=None, **kargs):
     if not (current_user.is_admin() or current_user.username == instance_id):
         raise ProcessingException(description='Forbidden', code=403)
 
+
+def patch_user(instance_id=None, data=None, **kargs):
+    # print data
+    for i in range(len(data["fields"])):
+        # it only works because we wont recive a bool
+        if data["values"][i]:
+            data[data["fields"][i]] = data["values"][i]
+    del data["fields"]
+    del data["values"]
+
+
 def new_user(*args, **kargs):
-
-    #check if we have connection with nodemanager
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if sock.connect_ex(('127.0.0.1',45064)):
-       abort(500) 
-
+    # check_node_manager_connection()
     data = request.data
     request_body = json.loads(data)
     username = request_body['username']
@@ -54,7 +79,7 @@ def new_user(*args, **kargs):
     imsi = request_body['imsi']
 
     if username is None or password is None:
-        abort(409)  # missing arguments
+        abort(400)  # missing arguments
     if User.query.filter_by(username=username).first() is not None:
         abort(409)  # existing user
     if User.query.filter_by(cpf=cpf).first() is not None:
@@ -63,10 +88,36 @@ def new_user(*args, **kargs):
         abort(409)  # existing user
     if User.query.filter_by(imsi=imsi).first() is not None:
         abort(409)  # existing user
-
     # user = User(username = username)
     # user.hash_password(password)
     # db.session.add(user)
     # db.session.commit()
     # return jsonify({ 'username': user.username }), 201, {'Location':
     # url_for('get_user', id = user.id, _external = True)}
+
+
+def new_scheduleuser(*args, **kargs):
+    # check if the user is already in the group
+    data = request.data
+    request_body = json.loads(data)
+
+    user_id = request_body['user_id']
+    schedule_id = request_body['schedule_id']
+
+    if ScheduleUser.query.filter_by(user_id=user_id, schedule_id=schedule_id).\
+            first() is not None:
+        abort(409)  # existing user
+
+# Check if the user has a schedule
+
+
+def schedule_exists(data=None, **kargs):
+    data = request.data
+    request_body = json.loads(data)
+    schedule = Schedules.query.\
+        filter_by(name=request_body['name']).first()
+    if schedule is not None:
+        raise ProcessingException(
+            description='A schedule with this name already exists', code=400)
+    else:
+        pass

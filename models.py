@@ -23,7 +23,7 @@ class User(db.Model):
     __tablename__ = 'users'
 
     _id = db.Column(db.Integer, primary_key=True, nullable=False)
-    #levels:  0=administrator, 1=users, 2=collaborator
+    # levels:  0=administrator, 1=users, 2=collaborator
     level = db.Column(db.Integer, nullable=False)
     name = db.Column(db.Unicode, nullable=False)
     address = db.Column(db.Unicode)
@@ -36,10 +36,10 @@ class User(db.Model):
     voice_balance = db.Column(db.Integer, nullable=False)
     data_balance = db.Column(db.Integer, nullable=False)
 
-   # ki = db.Column(db.Integer)
-   # city = db.Column(db.Unicode)
-   # state = db.Column(db.Unicode)
-   # postalcode = db.Column(db.Integer)
+    # ki = db.Column(db.Integer)
+    # city = db.Column(db.Unicode)
+    # state = db.Column(db.Unicode)
+    # postalcode = db.Column(db.Integer)
 
     def is_admin(self):
         return (level == 0 if True else False)
@@ -62,27 +62,28 @@ class User(db.Model):
     def DataBalance(self):
         return self.data_balance
 
-    @hybrid_property
-    def VoiceBalanceHistoric(self):
-        # TODO: Maybe it should use object_session
-        balances = VoiceBalance.query.order_by(
-            VoiceBalance._id.desc()).filter_by(from_user_id=self._id).limit(10)
-        historic_list = []
-        for y in balances:
-            historic_list.append(row2dict(y))
-        return historic_list
+    # @hybrid_property
+    # def VoiceBalanceHistoric(self):
+    #     # TODO: Maybe it should use object_session
+    #     balances = VoiceBalance.query.order_by(
+    #         VoiceBalance._id.desc()).filter_by(from_user_id=self._id).limit(10)
+    #     historic_list = []
+    #     for y in balances:
+    #         historic_list.append(row2dict(y))
+    #     return historic_list
+    #
+    # @hybrid_property
+    # def DataBalanceHistoric(self):
+    #     # TODO: Maybe it should use object_session
+    #     balances = DataBalance.query.order_by(
+    #         DataBalance._id.desc()).filter_by(user_id=self._id).limit(10)
+    #     historic_list = []
+    #     for y in balances:
+    #         historic_list.append(row2dict(y))
+    #     return historic_list
 
-    @hybrid_property
-    def DataBalanceHistoric(self):
-        # TODO: Maybe it should use object_session
-        balances = DataBalance.query.order_by(
-            DataBalance._id.desc()).filter_by(user_id=self._id).limit(10)
-        historic_list = []
-        for y in balances:
-            historic_list.append(row2dict(y))
-        return historic_list
-
-    def __init__(self, level, name, cpf, username, password, clid, imsi, voice_balance=None, data_balance=None, address=None):
+    def __init__(self, level, name, cpf, username, password, clid, imsi,
+                 voice_balance=None, data_balance=None, address=None):
         self.level = level
         self.name = name
         self.address = address
@@ -115,7 +116,9 @@ class Schedules(db.Model):
         self.name = name
         self.value = value
         self.kind = kind
-        if day > 28:  # to solve some problems we set the last day of the month as 28
+        # to solve some problems we set the last day of the month as 28
+        # for example the schedules of day 30 won't run in february
+        if int(day) > 28:
             self.day = 28
         else:
             self.day = day
@@ -129,11 +132,12 @@ class Schedules(db.Model):
 class ScheduleUser(db.Model):
 
     __tablename__ = 'schedule_user'
+    _id = db.Column(db.Integer, primary_key=True)
 
     user_id = db.Column(db.Integer, db.ForeignKey(
-        'users._id'), primary_key=True)
+        'users._id'))
     schedule_id = db.Column(db.Integer, db.ForeignKey(
-        'schedule._id'), primary_key=True)
+        'schedule._id'))
     count = db.Column(db.Integer, nullable=False)
 
     def __init__(self, user_id, schedule_id, count):
@@ -151,7 +155,7 @@ class VoiceBalance(db.Model):
     """
     __tablename__ = 'voice_balance'
 
-    _id = db.Column(db.Integer, db.Sequence('cdr_id_seq'), primary_key=True)
+    _id = db.Column(db.Integer, primary_key=True)
     from_user_id = db.Column(
         db.Integer, db.ForeignKey('users._id'), nullable=False)
     to_user_id = db.Column(db.Integer, db.ForeignKey('users._id'))
@@ -164,7 +168,8 @@ class VoiceBalance(db.Model):
     # to_user = db.relationship('User', backref='received_calls',
     #                           foreign_keys=to_user_id)
 
-    def __init__(self, from_user_id, value, origin, to_user_id=None, date=None):
+    def __init__(self, from_user_id, value, origin,
+                 to_user_id=None, date=None):
         self.from_user_id = from_user_id
         self.to_user_id = to_user_id
         self.value = value
@@ -195,7 +200,8 @@ class DataBalance(db.Model):
     connection_ip = db.Column(db.Unicode)
     origin = db.Column(db.Unicode, nullable=False)
 
-    def __init__(self, user_id, value, origin, user_ip=None, connection_ip=None, date=None):
+    def __init__(self, user_id, value, origin, user_ip=None,
+                 connection_ip=None, date=None):
 
         self.user_id = user_id
         self.value = value

@@ -2,15 +2,14 @@ from models import Schedules, ScheduleUser,\
     VoiceBalance, DataBalance, ScheduleInput
 from datetime import datetime, timedelta
 from setup import db
-from config import schedule_verification_time
+from config import SCHEDULE_VERIFICATION_TIME, FIRS_DATETIME
 import schedule
 import time
 from threading import Thread
 
 # most of the work here could have been done by trigger in the db but to keep
 # the code portable I'm doing it through the ORM
-
-firs_datetime = datetime(2016, 7, 2)
+last_verification = None
 
 
 def credit_by_schedule(day):
@@ -77,7 +76,7 @@ def check_last():
     if last_voice:
         last_voice = last_voice.date
     else:
-        last_voice = firs_datetime
+        last_voice = FIRS_DATETIME
 
     last_data = DataBalance.query.filter_by(origin=u"schedule").order_by(
         DataBalance.date.desc()).first()
@@ -86,15 +85,19 @@ def check_last():
     if last_data:
         last_data = last_data.date
     else:
-        last_data = firs_datetime
+        last_data = FIRS_DATETIME
 
     return max(last_voice, last_data)
 
 
-def schedule_routine(last=None):
+def schedule_routine():
     # check if we have the last check salved
-    if not last:
+    global last_verification
+    if last_verification:
+        last = last_verification
+    else:
         last = check_last()
+        last_verification = last
 
     if (last.day != datetime.now().day) or\
             (last.month != datetime.now().month):
@@ -108,7 +111,7 @@ def run_schedule():
 
 
 def start_schedule():
-    schedule.every().day.at(schedule_verification_time).do(schedule_routine)
+    schedule.every().day.at(SCHEDULE_VERIFICATION_TIME).do(schedule_routine)
     t = Thread(target=run_schedule)
     t.daemon = True
     t.start()
