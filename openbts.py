@@ -58,8 +58,9 @@ def patch_user_openbts(instance_id=None, data=None, **kw):
 
     user = User.query.filter_by(username=instance_id).first()
 
-    _id = user._id
-
+    _id = str(user._id)
+    if 'clid' not in data and  'imsi' not in data:
+        return
     if 'clid' in data:
         clid = data['clid']
     else:
@@ -95,7 +96,7 @@ def patch_user_openbts(instance_id=None, data=None, **kw):
     socket = context.socket(zmq.REQ)
     socket.connect("tcp://" + NODE_MANAGER_ADDRESS + ':' + NODE_MANAGER_PORT)
     socket.send_string(json.dumps(delete_request), encoding='utf-8')
-    socket.send_string(json.dumps(create_request), encoding='utf-8')
+    # socket.send_string(json.dumps(create_request), encoding='utf-8')
     # set timeout to send
     poller = zmq.Poller()
     poller.register(socket, zmq.POLLIN)
@@ -107,3 +108,20 @@ def patch_user_openbts(instance_id=None, data=None, **kw):
         socket.close(linger=1)
         context.term()
         abort(500, "Conexao com o NodeManager Falhou")
+
+
+    socket.send_string(json.dumps(create_request), encoding='utf-8')
+    poller = zmq.Poller()
+    poller.register(socket, zmq.POLLIN)
+    if poller.poll(1000):  # 1s timeout in milliseconds
+        msg = socket.recv_json()
+    else:
+        # TODO: what do we do when the request fail ?
+        # raise IOError("Request to OpenBTS Timeout")
+        socket.close(linger=1)
+        context.term()
+        abort(500, "Conexao com o NodeManager Falhou")
+
+
+    socket.close(linger=1)
+    context.term()
