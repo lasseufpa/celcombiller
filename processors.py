@@ -126,7 +126,7 @@ def schedule_exists(data=None, **kargs):
         pass
 
 
-def balance_post(result=None, **kw):
+def voice_balance_postprocessor(result=None, **kw):
     for i in range(len(result['objects'])):
         if result['objects'][i]['to_user_id']:
             result['objects'][i]['to_user_clid'] = User.query.filter_by(

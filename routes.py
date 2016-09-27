@@ -13,7 +13,7 @@ from openbts import new_user_openbts, patch_user_openbts
 from processors import auth, new_user, preprocessor_check_adm,\
     preprocessors_check_adm_or_normal_user, preprocessors_patch,\
     new_scheduleuser, schedule_exists, patch_user, pos_error_test,\
-    balance_post, pre_test
+    voice_balance_postprocessor, pre_test
 
 # to return the errors
 
@@ -466,7 +466,7 @@ manager.create_api(
     },
     postprocessors={
         'POST': [add_user_voice_balance],
-        'GET_MANY': [balance_post]
+        'GET_MANY': [voice_balance_postprocessor]
     },
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
