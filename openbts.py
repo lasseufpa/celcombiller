@@ -61,6 +61,7 @@ def patch_user_openbts(instance_id=None, data=None, **kw):
     _id = str(user._id)
     if 'clid' not in data and  'imsi' not in data:
         return
+
     if 'clid' in data:
         clid = data['clid']
     else:

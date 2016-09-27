@@ -1,15 +1,18 @@
 import json
 from flask import request, abort
 from models import User, ScheduleUser, Schedules
-from config import NODE_MANAGER_ADDRESS, NODE_MANAGER_PORT
 from flask_restless import ProcessingException
 from openbts import check_node_manager_connection
-
 
 def pos_error_test(result=None, **kw):
     test = [1, 2, 3]
     print test[7]
 
+
+def pre_test(data=None, search_params = None, **kw):
+    print '\n\n\n'
+    print search_params
+    print '\n\n\n'
 
 def make_error(status_code, sub_code, message, action):
     response = jsonify({
@@ -69,7 +72,7 @@ def patch_user(instance_id=None, data=None, **kargs):
 
 
 def new_user(*args, **kargs):
-    # check_node_manager_connection()
+    check_node_manager_connection()
     data = request.data
     request_body = json.loads(data)
     username = request_body['username']
@@ -121,3 +124,10 @@ def schedule_exists(data=None, **kargs):
             description='A schedule with this name already exists', code=400)
     else:
         pass
+
+
+def voice_balance_postprocessor(result=None, **kw):
+    for i in range(len(result['objects'])):
+        if result['objects'][i]['to_user_id']:
+            result['objects'][i]['to_user_clid'] = User.query.filter_by(
+                _id=result['objects'][i]['to_user_id']).first().clid
