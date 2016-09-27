@@ -59,6 +59,8 @@ def patch_user_openbts(instance_id=None, data=None, **kw):
     user = User.query.filter_by(username=instance_id).first()
 
     _id = user._id
+    if 'clid' not in data and 'imsi' not in data:
+        return
 
     if 'clid' in data:
         clid = data['clid']

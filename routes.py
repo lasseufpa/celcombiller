@@ -12,7 +12,8 @@ import json
 from openbts import new_user_openbts, patch_user_openbts
 from processors import auth, new_user, preprocessor_check_adm,\
     preprocessors_check_adm_or_normal_user, preprocessors_patch,\
-    new_scheduleuser, schedule_exists, patch_user, pos_error_test
+    new_scheduleuser, schedule_exists, patch_user, pos_error_test,\
+    balance_post, pre_test
 
 # to return the errors
 
@@ -453,7 +454,8 @@ manager.create_api(
         ],
         'GET_MANY': [
             auth,
-            preprocessor_check_adm
+            preprocessor_check_adm,
+            pre_test
         ],
         'GET_SINGLE': [auth, preprocessor_check_adm],
         'PATCH_SINGLE': [
@@ -463,7 +465,8 @@ manager.create_api(
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
-        'POST': [add_user_voice_balance]
+        'POST': [add_user_voice_balance],
+        'GET_MANY': [balance_post]
     },
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
     results_per_page=100,
