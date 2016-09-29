@@ -1,7 +1,7 @@
-import routes
-from setup import app
+from src import routes
+from src.setup import app
 from config import DEBUG, PORT_TO_RUN
-from schedule_system import start_schedule
+from src.schedule_system import start_schedule
 
 start_schedule()
 
