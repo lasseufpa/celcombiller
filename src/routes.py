@@ -438,12 +438,8 @@ manager.create_api(
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
-        'POST': [
-
-        ],
-        'PATCH_SINGLE': [
-        ],
-        'PATCH_MANY': [
+        'GET_MANY': [
+            inject_schedule_information
         ]
     },
     methods=['POST', 'GET', 'PATCH', 'DELETE'],

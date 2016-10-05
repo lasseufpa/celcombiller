@@ -167,3 +167,23 @@ def create_schedule_contract_patch_many(data=None, search_params=None, **kw):
     db.session.add(contract)
     db.session.commit()
     del data['number']
+
+
+def inject_schedule_information(data=None, instance_id=None, search_params=None, result=None, **kw):
+    print '\n\n\n'
+    print 'Data:'
+    print data
+    print 'instance id:'
+    print instance_id
+    print 'parans:'
+    print search_params
+    print 'result:'
+    print result
+    print '\n\n\n'
+    for i in range(result['num_results']):
+        schedule = Schedules.query.filter_by(
+            _id=result['objects'][i]['schedule_id']).first()
+        result['objects'][i]['schedule_name'] = schedule.name
+        result['objects'][i]['day'] = schedule.day
+        result['objects'][i]['value'] = schedule.value
+        result['objects'][i]['kind'] = schedule.kind
