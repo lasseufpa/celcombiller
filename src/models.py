@@ -149,6 +149,24 @@ class ScheduleUser(db.Model):
         return 'GROUPS %r' % (self.name)
 
 
+class ScheduleContract(db.Model):
+
+    __tablename__ = 'schedule_contract'
+
+    _id = db.Column(db.Integer, primary_key=True)
+    schedule_user_id = db.Column(db.Integer, db.ForeignKey(
+        'schedule_user._id'))
+    # the day the user signed the plan
+    date = db.Column(db.DateTime, nullable=False)
+    # for how many months the user hired the Planos
+    months = db.Column(db.Integer, nullable=False)
+
+    def __init__(self, schedule_user_id, months):
+        self.schedule_user_id = schedule_user_id
+        self.months = months
+        self.date = datetime.now()
+
+
 class VoiceBalance(db.Model):
     """
     Call Detail Records holds information about finished calls

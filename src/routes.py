@@ -2,18 +2,14 @@
 from flask import request, flash, render_template, jsonify
 from flask.ext.restless import APIManager
 from setup import db, app, login_manager
-from models import User, VoiceBalance, DataBalance, Schedules, ScheduleInput, \
-    ScheduleUser
+from models import *
 from datetime import datetime
 from flask_restless import ProcessingException
 from flask.ext.login import login_user, logout_user, current_user,\
     login_required
 import json
 from openbts import new_user_openbts, patch_user_openbts
-from processors import auth, new_user, preprocessor_check_adm,\
-    preprocessors_check_adm_or_normal_user, preprocessors_patch,\
-    new_scheduleuser, schedule_exists, patch_user, pos_error_test,\
-    voice_balance_postprocessor, pre_test
+from processors import *
 
 # to return the errors
 
@@ -418,8 +414,9 @@ manager.create_api(
     preprocessors={
         'POST': [
             preprocessor_check_adm,
-            new_scheduleuser
-            # date_now
+            new_scheduleuser,
+            create_schedule_contract_post
+            # pre_test
         ],
         'GET_MANY': [
             auth,
@@ -428,18 +425,43 @@ manager.create_api(
         'GET_SINGLE': [auth, preprocessor_check_adm],
         'PATCH_SINGLE': [
             auth,
-            preprocessor_check_adm
+            preprocessor_check_adm,
+            create_schedule_contract_patch_single,
+            # pre_test
         ],
         'PATCH_MANY': [
             auth,
-            preprocessor_check_adm
+            preprocessor_check_adm,
+            create_schedule_contract_patch_many,
+            # pre_test
         ],
         'DELETE_SINGLE': [auth, preprocessor_check_adm],
     },
     postprocessors={
-        'POST': []
+        'GET_MANY': [
+            inject_schedule_information
+        ]
     },
     methods=['POST', 'GET', 'PATCH', 'DELETE'],
+    results_per_page=100,
+    allow_patch_many=True
+)
+
+
+manager.create_api(
+    ScheduleContract,
+    preprocessors={
+        'GET_MANY': [
+            auth,
+            preprocessor_check_adm
+        ],
+        'GET_SINGLE': [
+            auth, preprocessor_check_adm
+        ],
+    },
+    postprocessors={
+    },
+    methods=['GET'],
     results_per_page=100,
     allow_patch_many=True
 )

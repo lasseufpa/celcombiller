@@ -1,18 +1,26 @@
 import json
 from flask import request, abort
-from models import User, ScheduleUser, Schedules
+from models import *
 from flask_restless import ProcessingException
 from openbts import check_node_manager_connection
+
 
 def pos_error_test(result=None, **kw):
     test = [1, 2, 3]
     print test[7]
 
 
-def pre_test(data=None, search_params = None, **kw):
+def pre_test(data=None, instance_id=None, search_params=None, **kw):
     print '\n\n\n'
+    print 'Data:'
+    print data
+    print 'instance id:'
+    print instance_id
+    print 'parans:'
     print search_params
     print '\n\n\n'
+    # pass
+
 
 def make_error(status_code, sub_code, message, action):
     response = jsonify({
@@ -131,3 +139,51 @@ def voice_balance_postprocessor(result=None, **kw):
         if result['objects'][i]['to_user_id']:
             result['objects'][i]['to_user_clid'] = User.query.filter_by(
                 _id=result['objects'][i]['to_user_id']).first().clid
+
+
+def create_schedule_contract_post(search_params=None, **kw):
+    pass
+
+
+def create_schedule_contract_patch_single(search_params=None, **kw):
+    pass
+
+
+def create_schedule_contract_patch_many(data=None, search_params=None, **kw):
+    print search_params
+    print data
+    # contract = ScheduleUser.query.filter(schedule_id= search_params[])
+    for i in range(len(search_params['filters'])):
+        if search_params['filters'][i]['name'] == 'schedule_id':
+            schedule_id = search_params['filters'][i]['val']
+        if search_params['filters'][i]['name'] == 'user_id':
+            user_id = search_params['filters'][i]['val']
+
+    schedule_user_id = ScheduleUser.query.filter_by(
+        schedule_id=schedule_id, user_id=user_id).first()._id
+
+    contract = ScheduleContract(
+        schedule_user_id=schedule_user_id, months=data['number'])
+    db.session.add(contract)
+    db.session.commit()
+    del data['number']
+
+
+def inject_schedule_information(data=None, instance_id=None, search_params=None, result=None, **kw):
+    print '\n\n\n'
+    print 'Data:'
+    print data
+    print 'instance id:'
+    print instance_id
+    print 'parans:'
+    print search_params
+    print 'result:'
+    print result
+    print '\n\n\n'
+    for i in range(result['num_results']):
+        schedule = Schedules.query.filter_by(
+            _id=result['objects'][i]['schedule_id']).first()
+        result['objects'][i]['schedule_name'] = schedule.name
+        result['objects'][i]['day'] = schedule.day
+        result['objects'][i]['value'] = schedule.value
+        result['objects'][i]['kind'] = schedule.kind
