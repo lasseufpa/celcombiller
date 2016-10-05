@@ -1,3 +1,4 @@
+envoy==0.0.3
 Flask==0.10.1
 Flask-Cors==2.1.2
 Flask-Login==0.3.0
@@ -12,6 +13,7 @@ python-dateutil==2.5.3
 python-mimeparse==1.5.2
 pyzmq==15.0.0
 requests==2.9.0
+schedule==0.3.2
 six==1.10.0
 SQLAlchemy==0.9.9
 Werkzeug==0.11.10

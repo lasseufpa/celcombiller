@@ -1,5 +1,6 @@
 import zmq
 import json
+import envoy
 import socket as socket_pk
 from config import NODE_MANAGER_ADDRESS, NODE_MANAGER_PORT
 from flask import abort
@@ -11,6 +12,9 @@ def check_node_manager_connection():
     socket = socket_pk.socket(socket_pk.AF_INET, socket_pk.SOCK_STREAM)
     if socket.connect_ex((NODE_MANAGER_ADDRESS, int(NODE_MANAGER_PORT))):
         abort(500, "Conexao com o NodeManager Falhou")
+        return False
+    else:
+        return True
 
 
 def new_user_openbts(result=None, **kw):
@@ -126,3 +130,10 @@ def patch_user_openbts(instance_id=None, data=None, **kw):
 
     socket.close(linger=1)
     context.term()
+
+def send_sms(from_clid, to_clid, msg):
+    check_node_manager_connection()
+
+    to_imsi = User.query.filter_by(clid = to_clid).first().imsi
+
+    response = envoy.run('/OpenBTS/OpenBTSCLI -c "sendsms ' + str(to_imsi) + ' ' + str(from_clid) + ' ' + msg +'"', timeout=1000)
