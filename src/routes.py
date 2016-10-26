@@ -8,7 +8,7 @@ from flask_restless import ProcessingException
 from flask.ext.login import login_user, logout_user, current_user,\
     login_required
 import json
-from openbts import new_user_openbts, patch_user_openbts
+from openbts import new_user_openbts, patch_user_openbts, send_sms
 from processors import *
 
 # to return the errors
@@ -97,6 +97,11 @@ def login():
     else:
         raise InvalidUsage(u'Usuário ou Senha invalido', status_code=404)
 
+@app.route('/sms',methods=['POST'])
+def sms():
+    data = json.loads(request.data)
+    from_clid = User.query.filter_by(_id=data["id"]).first().clid
+    send_sms(from_clid, data["to"], data["msg"])
 
 @login_manager.request_loader
 def load_user_from_request(request):
