@@ -1,5 +1,5 @@
-from setup import db
-from models import User
+from src.setup import db
+from src.models import User
 
 
 admin = User('0', 'administrator', '000', 'admin', 'adm123',
