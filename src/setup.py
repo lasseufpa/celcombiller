@@ -1,6 +1,7 @@
 from flask import Flask
 from flask.ext.sqlalchemy import SQLAlchemy
 import flask.ext.restless
+from flask.ext.restful import Resource, Api
 from flask.ext.login import LoginManager
 from flask.ext.cors import CORS
 from config import PATH_TO_DATABASE, SECRET_KEY, DEBUG
