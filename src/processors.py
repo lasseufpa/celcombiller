@@ -1,7 +1,7 @@
 import json
-from flask import request, abort
-from .models import *
+from flask import request, abort, make_response, jsonify
 from flask_restless import ProcessingException
+from .models import *
 from .openbts import check_node_manager_connection
 
 
@@ -110,8 +110,12 @@ def patch_user(instance_id=None, data=None, **kargs):
 
 
 def new_user(*args, **kargs):
-    # check_node_manager_connection()
+    """ check if the user exists and create the new user in the openbts database"""
+
+    check_node_manager_connection()
+    data = request.data
     request_body = json.loads(request.data.decode("utf-8"))
+
     username = request_body['username']
     password = request_body['password']
     cpf = request_body['cpf']
@@ -119,15 +123,14 @@ def new_user(*args, **kargs):
     imsi = request_body['imsi']
 
     if username is None or password is None:
-        abort(400)  # missing arguments
-    if User.query.filter_by(username=username).first() is not None:
-        abort(409)  # existing user
-    if User.query.filter_by(cpf=cpf).first() is not None:
-        abort(409)  # existing user
-    if User.query.filter_by(clid=clid).first() is not None:
-        abort(409)  # existing user
-    if User.query.filter_by(imsi=imsi).first() is not None:
-        abort(409)  # existing user
+        abort(make_response(jsonify(message=""), 409))  # missing arguments
+    if User.query.filter_by(username=username).first() is not None or \
+            User.query.filter_by(cpf=cpf).first() is not None or \
+            User.query.filter_by(clid=clid).first() is not None or \
+            User.query.filter_by(imsi=imsi).first() is not None:
+        # existing user
+        abort(make_response(jsonify(message='the user already exists'), 409))
+
     # user = User(username = username)
     # user.hash_password(password)
     # db.session.add(user)
@@ -137,7 +140,7 @@ def new_user(*args, **kargs):
 
 
 def new_scheduleuser(*args, **kargs):
-    # check if the user is already in the group
+    """ check if the user is already in the group """
     data = request.data
     request_body = json.loads(data)
 
@@ -146,7 +149,8 @@ def new_scheduleuser(*args, **kargs):
 
     if ScheduleUser.query.filter_by(user_id=user_id, schedule_id=schedule_id).\
             first() is not None:
-        abort(409)  # existing user
+        # existing user
+        abort(make_response(jsonify(message='the user already exists'), 409))
 
 # Check if the user has a schedule
 
@@ -179,8 +183,7 @@ def create_schedule_contract_patch_single(search_params=None, **kw):
 
 
 def create_schedule_contract_patch_many(data=None, search_params=None, **kw):
-    print(search_params)
-    print(data)
+
     # contract = ScheduleUser.query.filter(schedule_id= search_params[])
     for i in range(len(search_params['filters'])):
         if search_params['filters'][i]['name'] == 'schedule_id':
@@ -199,6 +202,7 @@ def create_schedule_contract_patch_many(data=None, search_params=None, **kw):
 
 
 def inject_schedule_information(data=None, instance_id=None, search_params=None, result=None, **kw):
+
     for i in range(result['num_results']):
         schedule = Schedules.query.filter_by(
             id=result['objects'][i]['schedule_id']).first()
