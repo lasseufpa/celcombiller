@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import request, flash, render_template, jsonify
+from flask import request, flash, render_template, jsonify, make_response
 from flask.ext.restless import APIManager
 from setup import db, app, login_manager
 from models import *
@@ -97,11 +97,17 @@ def login():
     else:
         raise InvalidUsage(u'Usuário ou Senha invalido', status_code=404)
 
-@app.route('/sms',methods=['POST'])
+
+@app.route('/sms', methods=['POST'])
 def sms():
     data = json.loads(request.data)
+    if  User.query.filter_by(clid=data["to"]).first() is None:
+        abort(make_response(jsonify(message="User not found"), 404))
+
     from_clid = User.query.filter_by(_id=data["id"]).first().clid
     send_sms(from_clid, data["to"], data["msg"])
+    return jsonify({})
+
 
 @login_manager.request_loader
 def load_user_from_request(request):
