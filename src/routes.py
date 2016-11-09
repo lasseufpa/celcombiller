@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 from flask import request, flash, render_template, jsonify
-from flask.ext.restless import APIManager
-from setup import db, app, login_manager
-from models import *
+from flask_restless import APIManager
+from .setup import db, app, login_manager
+from .models import *
 from datetime import datetime
 from flask_restless import ProcessingException
-from flask.ext.login import login_user, logout_user, current_user,\
+from flask_login import login_user, logout_user, current_user,\
     login_required
 import json
-from openbts import new_user_openbts, patch_user_openbts, send_sms
-from processors import *
+from .openbts import new_user_openbts, patch_user_openbts, send_sms
+from .processors import *
 
 # to return the errors
 
@@ -84,7 +84,7 @@ def login():
     #         return render_template('ERROR.html')
 
     level = ["admin", "user", "coll"]
-    data = json.loads(request.data)
+    data = json.loads(request.data.decode("utf-8"))
     user = User.query.filter_by(
         username=data['username'], password=data["password"]).first()
     if user:
@@ -92,7 +92,7 @@ def login():
         return json.dumps({"roles": [level[user.level]],
                            "displayName": user.name,
                            "username": user.username,
-                           "id": user._id
+                           "id": user.id
                            })
     else:
         raise InvalidUsage(u'Usuário ou Senha invalido', status_code=404)
@@ -279,12 +279,12 @@ def add_user_data_balance(*args, **kargs):
     # Check if we are passing the user id or the imsi in the user_id field, it
     # is necessary because Openbts users IMSI only.
     if request_body['user_id'] < 1e13:
-        x = DataBalance.query.order_by(DataBalance._id.desc()).first()
+        x = DataBalance.query.order_by(DataBalance.id.desc()).first()
         x.users_id = request_body['user_id']
     else:
-        x = DataBalance.query.order_by(Balance._id.desc()).first()
+        x = DataBalance.query.order_by(Balance.id.desc()).first()
         x.users_id = User.query.filter_by(
-            imsi=request_body['user_id']).first()._id
+            imsi=request_body['user_id']).first().id
     db.session.add(x)
     db.session.commit()
 
@@ -294,7 +294,7 @@ def add_user_voice_balance(*args, **kargs):
     data = request.data
     request_body = json.loads(data)
 
-    x = VoiceBalance.query.order_by(VoiceBalance._id.desc()).first()
+    x = VoiceBalance.query.order_by(VoiceBalance.id.desc()).first()
     x.users_id = request_body['from_user_id']
 
     db.session.add(x)

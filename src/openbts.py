@@ -2,9 +2,9 @@ import zmq
 import json
 import envoy
 import socket as socket_pk
-from config import NODE_MANAGER_ADDRESS, NODE_MANAGER_PORT
+from .config import NODE_MANAGER_ADDRESS, NODE_MANAGER_PORT
 from flask import abort
-from models import User
+from .models import User
 
 
 def check_node_manager_connection():
@@ -19,7 +19,7 @@ def check_node_manager_connection():
 
 def new_user_openbts(result=None, **kw):
 
-    _id = str(result['_id'])
+    id = str(result['id'])
     clid = str(result['clid'])
     imsi = str(result['imsi'])
 
@@ -27,7 +27,7 @@ def new_user_openbts(result=None, **kw):
         'command': 'subscribers',
         'action': 'create',
         'fields': {
-            'name': _id,
+            'name': id,
             'imsi': 'IMSI' + imsi,
                     'msisdn': clid,
                     'ki': ''
@@ -62,7 +62,7 @@ def patch_user_openbts(instance_id=None, data=None, **kw):
 
     user = User.query.filter_by(username=instance_id).first()
 
-    _id = str(user._id)
+    id = str(user.id)
     if 'clid' not in data and  'imsi' not in data:
         return
 
@@ -90,7 +90,7 @@ def patch_user_openbts(instance_id=None, data=None, **kw):
         'command': 'subscribers',
         'action': 'create',
         'fields': {
-            'name': _id,
+            'name': id,
             'imsi': 'IMSI' + imsi_new,
                     'msisdn': clid,
                     'ki': ''

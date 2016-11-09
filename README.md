@@ -27,7 +27,7 @@ Each SIP user must be inserted in the database of users with a balance. The pyth
 
 ```python
 from flask import Flask
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
 from setup import db
 from models import User, Ballance
 

@@ -1,8 +1,8 @@
-from models import Schedules, ScheduleUser,\
+from .models import Schedules, ScheduleUser,\
     VoiceBalance, DataBalance, ScheduleInput
 from datetime import datetime, timedelta
-from setup import db
-from config import SCHEDULE_VERIFICATION_TIME, FIRS_DATETIME
+from .setup import db
+from .config import SCHEDULE_VERIFICATION_TIME, FIRS_DATETIME
 import schedule
 import time
 from threading import Thread
@@ -20,7 +20,7 @@ def credit_by_schedule(day):
         for schedule_object in list_schedule:
             # then we get the users of that schedule
             user_list = ScheduleUser.query.\
-                filter_by(schedule_id=schedule_object._id).all()
+                filter_by(schedule_id=schedule_object.id).all()
             if user_list:
                 for user in user_list:
                     # And then we add credit to the user and subtract one from
@@ -29,16 +29,16 @@ def credit_by_schedule(day):
                     if user.count > 1:
                         user.count -= 1
                         schedule_input = ScheduleInput(
-                            schedule_object._id, user.user_id)
+                            schedule_object.id, user.user_id)
                         db.session.add(schedule_input)
                         db.session.commit()
 
                     elif user.count == 1:
                         schedule_input = ScheduleInput(
-                            schedule_object._id, user.user_id)
+                            schedule_object.id, user.user_id)
                         ScheduleUser.query.filter_by(
                             user_id=user.user_id,
-                            schedule_id=schedule_object._id
+                            schedule_id=schedule_object.id
                         ).delete()
                         db.session.add(schedule_input)
                         db.session.commit()
@@ -46,7 +46,7 @@ def credit_by_schedule(day):
                     else:
                         ScheduleUser.query.filter_by(
                             user_id=user.user_id,
-                            schedule_id=schedule_object._id
+                            schedule_id=schedule_object.id
                         ).delete()
                         db.session.commit()
 

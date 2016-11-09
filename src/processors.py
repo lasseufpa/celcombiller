@@ -1,24 +1,54 @@
 import json
 from flask import request, abort
-from models import *
+from .models import *
 from flask_restless import ProcessingException
-from openbts import check_node_manager_connection
+from .openbts import check_node_manager_connection
+
+
+def authenticate(username, password):
+
+    print('\n\n\n')
+    print('request:')
+    print(request.headers)
+    print(request.data)
+    print(request.data.decode("utf-8"))
+    print('\n\n\n')
+
+
+    level = ["admin", "user", "coll"]
+    data = json.loads(request.data.decode("utf-8"))
+    user = User.query.filter_by(
+        username=data['username'], password=data["password"]).first()
+    if user:
+        return user
+
+def identity(username, password):
+    user = username_table.get(username, None)
+    if user and safe_str_cmp(user.password.encode('utf-8'), password.encode('utf-8')):
+        return user
+    level = ["admin", "user", "coll"]
+    data = json.loads(request.data)
+    user = User.query.filter_by(
+        username=data['username'], password=data["password"]).first()
+    if user:
+        return user.id
+
 
 
 def pos_error_test(result=None, **kw):
     test = [1, 2, 3]
-    print test[7]
+    print(test[7])
 
 
 def pre_test(data=None, instance_id=None, search_params=None, **kw):
-    print '\n\n\n'
-    print 'Data:'
-    print data
-    print 'instance id:'
-    print instance_id
-    print 'parans:'
-    print search_params
-    print '\n\n\n'
+    print('\n\n\n')
+    print('Data:')
+    print(data)
+    print('instance id:')
+    print(instance_id)
+    print('parans:')
+    print(search_params)
+    print('\n\n\n')
     # pass
 
 
@@ -49,9 +79,9 @@ def preprocessor_check_adm(*args, **kargs):
 
 
 def preprocessors_patch(instance_id=None, data=None, **kargs):
-    user_cant_change = ["level", "clid", "_id",
+    user_cant_change = ["level", "clid", "id",
                         "originated_calls", "received_calls"]
-    admin_cant_change = ["_id", "originated_calls", "received_calls"]
+    admin_cant_change = ["id", "originated_calls", "received_calls"]
     if current_user.is_admin():
         for x in data.keys():
             if x in admin_cant_change:
@@ -70,7 +100,7 @@ def preprocessors_check_adm_or_normal_user(instance_id=None, **kargs):
 
 
 def patch_user(instance_id=None, data=None, **kargs):
-    # print data
+    # print(data)
     for i in range(len(data["fields"])):
         # it only works because we wont recive a bool
         if data["values"][i]:
@@ -80,9 +110,8 @@ def patch_user(instance_id=None, data=None, **kargs):
 
 
 def new_user(*args, **kargs):
-    check_node_manager_connection()
-    data = request.data
-    request_body = json.loads(data)
+    # check_node_manager_connection()
+    request_body = json.loads(request.data.decode("utf-8"))
     username = request_body['username']
     password = request_body['password']
     cpf = request_body['cpf']
@@ -138,7 +167,7 @@ def voice_balance_postprocessor(result=None, **kw):
     for i in range(len(result['objects'])):
         if result['objects'][i]['to_user_id']:
             result['objects'][i]['to_user_clid'] = User.query.filter_by(
-                _id=result['objects'][i]['to_user_id']).first().clid
+                id=result['objects'][i]['to_user_id']).first().clid
 
 
 def create_schedule_contract_post(search_params=None, **kw):
@@ -150,8 +179,8 @@ def create_schedule_contract_patch_single(search_params=None, **kw):
 
 
 def create_schedule_contract_patch_many(data=None, search_params=None, **kw):
-    print search_params
-    print data
+    print(search_params)
+    print(data)
     # contract = ScheduleUser.query.filter(schedule_id= search_params[])
     for i in range(len(search_params['filters'])):
         if search_params['filters'][i]['name'] == 'schedule_id':
@@ -160,7 +189,7 @@ def create_schedule_contract_patch_many(data=None, search_params=None, **kw):
             user_id = search_params['filters'][i]['val']
 
     schedule_user_id = ScheduleUser.query.filter_by(
-        schedule_id=schedule_id, user_id=user_id).first()._id
+        schedule_id=schedule_id, user_id=user_id).first().id
 
     contract = ScheduleContract(
         schedule_user_id=schedule_user_id, months=data['number'])
@@ -170,19 +199,9 @@ def create_schedule_contract_patch_many(data=None, search_params=None, **kw):
 
 
 def inject_schedule_information(data=None, instance_id=None, search_params=None, result=None, **kw):
-    print '\n\n\n'
-    print 'Data:'
-    print data
-    print 'instance id:'
-    print instance_id
-    print 'parans:'
-    print search_params
-    print 'result:'
-    print result
-    print '\n\n\n'
     for i in range(result['num_results']):
         schedule = Schedules.query.filter_by(
-            _id=result['objects'][i]['schedule_id']).first()
+            id=result['objects'][i]['schedule_id']).first()
         result['objects'][i]['schedule_name'] = schedule.name
         result['objects'][i]['day'] = schedule.day
         result['objects'][i]['value'] = schedule.value
