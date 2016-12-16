@@ -8,7 +8,7 @@ from flask_restless import ProcessingException
 from flask.ext.login import login_user, logout_user, current_user,\
     login_required
 import json
-from openbts import new_user_openbts, patch_user_openbts, send_sms
+from openbts import new_user_openbts, patch_user_openbts, send_sms, find_imsi
 from processors import *
 
 # to return the errors
@@ -108,6 +108,9 @@ def sms():
     send_sms(from_clid, data["to"], data["msg"])
     return jsonify({})
 
+@app.route('/imsi', methods=['GET'])
+def imsi():
+    'TODO: Finish here'
 
 @login_manager.request_loader
 def load_user_from_request(request):

@@ -118,9 +118,13 @@ def patch_user_openbts(instance_id=None, data=None, **kw):
 
 def send_sms(from_clid, to_clid, msg):
     """ send a sms using the openbts executable, it only works if the back-end
-    and the openbts are in the same machine """
+    and the openbts are in the same machine because it uses the OpenBTS executable """
     # check_node_manager_connection()
     to_imsi = User.query.filter_by(clid=to_clid).first().imsi
+    envoy.run('/OpenBTS/OpenBTSCLI -c "sendsms {} {} {}"'.format(to_imsi, from_clid, msg), timeout=1000)
 
-    response = envoy.run('/OpenBTS/OpenBTSCLI -c "sendsms ' + str(to_imsi) +
-                         ' ' + str(from_clid) + ' ' + msg + '"', timeout=1000)
+def find_imsi(imei):
+    """ Find and return the IMSI from the first 13 number of the IMEI, it only works if the back-end
+    and the openbts are in the same machine because it uses the OpenBTS executable """
+
+    return envoy.run('/OpenBTS/OpenBTSCLI -c "tmsis" |grep {}'.format(str(imei)[:-2]), timeout=1000).std_out.split('\n')[0][:15]
